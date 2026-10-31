@@ -1,5 +1,10 @@
 include: package:flutter_lints/flutter.yaml
 
+# Витрина — отдельный пакет со своими зависимостями, анализируется в своей папке.
+analyzer:
+  exclude:
+    - widgetbook/**
+
 formatter:
   page_width: 120
 
