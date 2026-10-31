@@ -1,0 +1,27 @@
+name: surgreference_widgetbook
+description: "Витрина UI-кита SurgReference."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.11.5
+
+dependencies:
+  flutter:
+    sdk: flutter
+  surgreference:
+    path: ..
+  widgetbook: ^3.23.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  # Тема ссылается на семейство «Manrope» без префикса пакета, поэтому витрина подключает тот же файл шрифта сама.
+  fonts:
+    - family: Manrope
+      fonts:
+        - asset: ../assets/fonts/Manrope-Variable.ttf
