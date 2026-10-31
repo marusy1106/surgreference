@@ -35,7 +35,7 @@ class LabeledBar extends StatelessWidget {
             child: LinearProgressIndicator(
               value: value.clamp(0, 1),
               minHeight: 10,
-              color: color ?? c.accent,
+              color: color ?? c.marker,
               backgroundColor: c.surface2,
             ),
           ),

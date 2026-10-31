@@ -55,10 +55,17 @@ ThemeData buildTheme(Brightness brightness) {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: c.surface2,
+      fillColor: c.surface,
       hintStyle: text.bodyMedium!.copyWith(color: c.textMuted),
       contentPadding: const EdgeInsets.symmetric(horizontal: SrSpace.l, vertical: SrSpace.l),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(SrRadius.tile), borderSide: BorderSide.none),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(SrRadius.tile),
+        borderSide: BorderSide(color: c.line),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(SrRadius.tile),
+        borderSide: BorderSide(color: c.line),
+      ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(SrRadius.tile),
         borderSide: BorderSide(color: c.accent, width: 2),

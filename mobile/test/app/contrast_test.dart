@@ -29,6 +29,13 @@ void main() {
         }
       }
 
+      // Маркер — не текст: для графических элементов WCAG 1.4.11 требует 3:1.
+      test('marker on every background ≥ 3', () {
+        for (final bgColor in backgrounds.values) {
+          expect(contrast(c.marker, bgColor), greaterThanOrEqualTo(3));
+        }
+      });
+
       test('onAccent on accent ≥ 4.5', () => expect(contrast(c.onAccent, c.accent), greaterThanOrEqualTo(4.5)));
 
       test('status text on its tinted background ≥ 4.5', () {
@@ -43,12 +50,9 @@ void main() {
 
   group('aura cards', () {
     for (final aura in Aura.values) {
-      test('${aura.name}: ink and muted ink on veiled gradient ≥ 4.5', () {
-        for (final stop in [aura.start, aura.end]) {
-          final veiled = Color.alphaBlend(Colors.white.withValues(alpha: AuraInk.veilOpacity), stop);
-          expect(contrast(AuraInk.ink, veiled), greaterThanOrEqualTo(4.5));
-          expect(contrast(Color.alphaBlend(AuraInk.inkMuted, veiled), veiled), greaterThanOrEqualTo(4.5));
-        }
+      test('${aura.name}: white ink and muted ink at the brightest point ≥ 4.5', () {
+        expect(contrast(AuraInk.ink, aura.peak), greaterThanOrEqualTo(4.5));
+        expect(contrast(Color.alphaBlend(AuraInk.inkMuted, aura.peak), aura.peak), greaterThanOrEqualTo(4.5));
       });
     }
   });

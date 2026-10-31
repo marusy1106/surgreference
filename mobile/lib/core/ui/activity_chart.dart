@@ -104,7 +104,7 @@ class _ChartPainter extends CustomPainter {
         ..shader = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [c.accent.withValues(alpha: 0.28), c.accent.withValues(alpha: 0)],
+          colors: [c.marker.withValues(alpha: 0.28), c.marker.withValues(alpha: 0)],
         ).createShader(Offset.zero & size),
     );
     canvas.drawPath(
@@ -113,7 +113,7 @@ class _ChartPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.5
         ..strokeCap = StrokeCap.round
-        ..color = c.accent,
+        ..color = c.marker,
     );
     final last = at(values.length - 1);
     canvas.drawLine(
@@ -122,7 +122,7 @@ class _ChartPainter extends CustomPainter {
       grid..color = c.textMuted.withValues(alpha: 0.4),
     );
     canvas.drawCircle(last, 7, Paint()..color = c.bg);
-    canvas.drawCircle(last, 5, Paint()..color = c.accent);
+    canvas.drawCircle(last, 5, Paint()..color = c.marker);
   }
 
   @override

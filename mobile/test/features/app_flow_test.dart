@@ -73,6 +73,13 @@ void main() {
   /// Нажать на текст, при необходимости докрутив ленивый список и поставив цель в середину экрана
   /// (иначе её может закрывать нижняя навигация).
   Future<void> tapText(WidgetTester tester, String text) async {
+    // Вкладки нижнего меню подписаны только подсказкой (иконки без текста).
+    final tab = find.byTooltip(text);
+    if (find.text(text).evaluate().isEmpty && tab.evaluate().isNotEmpty) {
+      await tester.tap(tab.first);
+      await tester.pumpAndSettle();
+      return;
+    }
     final target = find.text(text);
     if (target.evaluate().isEmpty) {
       await tester.scrollUntilVisible(target, 200, scrollable: find.byType(Scrollable).first);
@@ -380,7 +387,7 @@ void main() {
     await store.writeRefresh('r1');
     await pumpApp(tester, textScale: 2);
     for (final tab in ['Каталог', 'Практика', 'Рейтинг', 'Профиль', 'Главная']) {
-      await tester.tap(find.text(tab).last);
+      await tester.tap(find.byTooltip(tab));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull, reason: tab);
     }

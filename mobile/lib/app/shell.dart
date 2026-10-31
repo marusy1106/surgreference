@@ -16,7 +16,8 @@ enum AppTab {
   final IconData selectedIcon;
 }
 
-/// Нижняя навигация из 5 вкладок (docs/01-mvp.md, 1.5). На этапе 5 оборачивается в StatefulShellRoute.
+/// Нижняя навигация из 5 вкладок (docs/01-mvp.md, 1.5): только иконки и точка под активной,
+/// как в финансовом референсе. Подписи читает скринридер и показывает подсказка при удержании.
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.tab, required this.onTab, required this.child});
 
@@ -26,20 +27,66 @@ class AppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = SrColors.of(context);
     return Scaffold(
       body: child,
       bottomNavigationBar: DecoratedBox(
         decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: SrColors.of(context).line)),
+          color: c.surface,
+          border: Border(top: BorderSide(color: c.line)),
         ),
-        child: NavigationBar(
-          selectedIndex: tab.index,
-          onDestinationSelected: (i) => onTab(AppTab.values[i]),
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          destinations: [
-            for (final t in AppTab.values)
-              NavigationDestination(icon: Icon(t.icon), selectedIcon: Icon(t.selectedIcon), label: t.label),
-          ],
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            height: 60,
+            child: Row(
+              children: [
+                for (final t in AppTab.values)
+                  Expanded(
+                    child: _NavItem(tab: t, selected: t == tab, onTap: () => onTab(t)),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  const _NavItem({required this.tab, required this.selected, required this.onTap});
+
+  final AppTab tab;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = SrColors.of(context);
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: tab.label,
+      excludeSemantics: true,
+      child: Tooltip(
+        message: tab.label,
+        child: InkResponse(
+          onTap: onTap,
+          radius: 28,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(selected ? tab.selectedIcon : tab.icon, color: selected ? c.text : c.textMuted, size: 26),
+              const SizedBox(height: SrSpace.xs),
+              AnimatedContainer(
+                duration: SrMotion.fast,
+                width: 4,
+                height: 4,
+                decoration: BoxDecoration(shape: BoxShape.circle, color: selected ? c.text : Colors.transparent),
+              ),
+            ],
+          ),
         ),
       ),
     );

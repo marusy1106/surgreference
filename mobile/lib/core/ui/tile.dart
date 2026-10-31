@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app/theme/theme.dart';
 
 /// Плитка сетки на главной и в прогрессе. Ширину (1×1 или 2×1) задаёт раскладка.
+/// Тонкая рамка — как у белых карточек Aetna; в тёмной теме она едва заметна.
 class Tile extends StatelessWidget {
   const Tile({super.key, required this.child, this.onTap, this.padding = const EdgeInsets.all(SrSpace.l)});
 
@@ -15,7 +16,10 @@ class Tile extends StatelessWidget {
     final c = SrColors.of(context);
     return Material(
       color: c.surface,
-      borderRadius: BorderRadius.circular(SrRadius.tile),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(SrRadius.tile),
+        side: BorderSide(color: c.line),
+      ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,

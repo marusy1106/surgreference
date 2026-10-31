@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme/theme.dart';
 
-/// Размытая «аура» с орбитами (онбординг, главная). Медленно «дышит»; при системном
+/// Размытая «сфера» с орбитами, как в финансовом референсе: вытянутый овал — тёплое ядро цвета
+/// дисциплины и холодный синий край, тонкие белые орбиты. Медленно «дышит»; при системном
 /// «Уменьшении движения» стоит на месте.
 class AuraBackground extends StatefulWidget {
   const AuraBackground({super.key, required this.aura, this.alignment = const Alignment(0, -0.35), this.child});
@@ -59,18 +60,24 @@ class _AuraBackgroundState extends State<AuraBackground> with SingleTickerProvid
                         alignment: Alignment.center,
                         children: [
                           ImageFiltered(
-                            imageFilter: ImageFilter.blur(sigmaX: d * 0.14, sigmaY: d * 0.14),
+                            imageFilter: ImageFilter.blur(sigmaX: d * 0.07, sigmaY: d * 0.07),
                             child: Transform.scale(
-                              scale: 0.92 + 0.1 * t,
+                              scale: 0.94 + 0.08 * t,
                               child: Container(
-                                width: d * 0.8,
-                                height: d * 0.8,
+                                width: d * 0.62,
+                                height: d * 0.9,
                                 decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
+                                  borderRadius: BorderRadius.all(Radius.elliptical(d * 0.31, d * 0.45)),
                                   gradient: RadialGradient(
-                                    colors: [aura.end, aura.start, aura.start.withValues(alpha: 0)],
-                                    stops: const [0, 0.55, 1],
-                                    center: Alignment(0.25 - 0.5 * t, -0.2),
+                                    colors: [
+                                      Color.lerp(aura.start, const Color(0xFFFFD2A8), 0.55)!,
+                                      aura.start,
+                                      _coolRim,
+                                      _coolRim.withValues(alpha: 0),
+                                    ],
+                                    stops: const [0, 0.42, 0.82, 1],
+                                    center: Alignment(0.1 - 0.2 * t, 0.15),
+                                    radius: 0.62,
                                   ),
                                 ),
                               ),
@@ -95,6 +102,8 @@ class _AuraBackgroundState extends State<AuraBackground> with SingleTickerProvid
   }
 }
 
+const _coolRim = Color(0xFF3E5BE0);
+
 class _OrbitPainter extends CustomPainter {
   _OrbitPainter(this.d, this.t, this.ink);
 
@@ -108,7 +117,7 @@ class _OrbitPainter extends CustomPainter {
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1
-      ..color = ink.withValues(alpha: 0.14);
+      ..color = ink.withValues(alpha: 0.32);
     for (final (i, k) in [0.62, 0.82, 1.02].indexed) {
       canvas.save();
       canvas.translate(center.dx, center.dy);

@@ -53,7 +53,8 @@ class _DotPainter extends CustomPainter {
   final Color color;
   final bool showUnlit;
 
-  double get _pitch => dot * 1.35;
+  // Точки мельче и реже, чем шаг сетки, — «воздушные» цифры референсов Activity и Veri.
+  double get _pitch => dot * 1.7;
 
   Size get size {
     final columns = value.split('').fold<int>(0, (sum, ch) => sum + _glyph(ch).first.length + 1) - 1;
@@ -65,7 +66,7 @@ class _DotPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final lit = Paint()..color = color;
-    final unlit = Paint()..color = color.withValues(alpha: color.a * 0.12);
+    final unlit = Paint()..color = color.withValues(alpha: color.a * 0.07);
     var x0 = 0;
     for (final ch in value.split('')) {
       final rows = _glyph(ch);
@@ -74,7 +75,7 @@ class _DotPainter extends CustomPainter {
           final on = rows[y][x] == '1';
           if (!on && !showUnlit) continue;
           final center = Offset((x0 + x + 0.5) * _pitch, (y + 0.5) * _pitch);
-          canvas.drawCircle(center, dot / 2, on ? lit : unlit);
+          canvas.drawCircle(center, on ? dot * 0.42 : dot * 0.3, on ? lit : unlit);
         }
       }
       x0 += rows.first.length + 1;

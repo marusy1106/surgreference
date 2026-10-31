@@ -15,6 +15,7 @@ class SrColors extends ThemeExtension<SrColors> {
     required this.success,
     required this.error,
     required this.warning,
+    required this.marker,
   });
 
   final Color bg;
@@ -29,33 +30,40 @@ class SrColors extends ThemeExtension<SrColors> {
   final Color error;
   final Color warning;
 
+  /// Маленький яркий маркер: бегунок шкалы, дуга прогресса, текущая точка. Не для заливок и текста.
+  final Color marker;
+
+  // Референсы (Activity, Veri, финансовое приложение): чёрный фон, белый «акцент» — выбранный чип,
+  // кнопка, точка навигации; лайм — только маркер на шкалах.
   static const dark = SrColors(
-    bg: Color(0xFF0B0B0D),
-    surface: Color(0xFF151518),
-    surface2: Color(0xFF1E1E22),
-    line: Color(0x14FFFFFF),
+    bg: Color(0xFF060607),
+    surface: Color(0xFF131315),
+    surface2: Color(0xFF1C1C1F),
+    line: Color(0x1AFFFFFF),
     text: Color(0xFFF4F4F6),
     textMuted: Color(0xFF9C9CA5),
-    accent: Color(0xFFD6F45B),
-    onAccent: Color(0xFF0B0B0D),
+    accent: Color(0xFFF4F4F6),
+    onAccent: Color(0xFF060607),
     success: Color(0xFF5BD69A),
     error: Color(0xFFFF6B6B),
     warning: Color(0xFFFFB547),
+    marker: Color(0xFFD6F45B),
   );
 
-  // Акцент и статусы темнее, чем в первой версии токенов: те не давали 4.5:1 на светлых поверхностях.
+  // Aetna: светло-серый фон, белые карточки с тонкой рамкой, чёрные выбранные чипы и круглые кнопки.
   static const light = SrColors(
-    bg: Color(0xFFF3F3F1),
+    bg: Color(0xFFEDEDEB),
     surface: Color(0xFFFFFFFF),
-    surface2: Color(0xFFECECEA),
-    line: Color(0x14000000),
+    surface2: Color(0xFFF4F4F2),
+    line: Color(0x1F000000),
     text: Color(0xFF0E0E10),
     textMuted: Color(0xFF5F5F66),
-    accent: Color(0xFF335CCF),
+    accent: Color(0xFF0E0E10),
     onAccent: Color(0xFFFFFFFF),
     success: Color(0xFF13703F),
     error: Color(0xFFB82C2C),
     warning: Color(0xFF985A00),
+    marker: Color(0xFF4E6FD8),
   );
 
   static SrColors of(BuildContext context) => Theme.of(context).extension<SrColors>()!;
@@ -73,6 +81,7 @@ class SrColors extends ThemeExtension<SrColors> {
     Color? success,
     Color? error,
     Color? warning,
+    Color? marker,
   }) {
     return SrColors(
       bg: bg ?? this.bg,
@@ -86,6 +95,7 @@ class SrColors extends ThemeExtension<SrColors> {
       success: success ?? this.success,
       error: error ?? this.error,
       warning: warning ?? this.warning,
+      marker: marker ?? this.marker,
     );
   }
 
@@ -104,18 +114,20 @@ class SrColors extends ThemeExtension<SrColors> {
       success: Color.lerp(success, other.success, t)!,
       error: Color.lerp(error, other.error, t)!,
       warning: Color.lerp(warning, other.warning, t)!,
+      marker: Color.lerp(marker, other.marker, t)!,
     );
   }
 }
 
 /// Ауры дисциплин; имя значения — `palette_token` дисциплины в API.
+/// [start] — свечение, [end] — глубокая основа карточки (как в референсах Activity и Veri).
 enum Aura {
-  surgery(Color(0xFFFF5A36), Color(0xFFFFB38A)),
-  therapy(Color(0xFFE0357F), Color(0xFFF2B3D3)),
-  cardiology(Color(0xFFE63946), Color(0xFF9B5DE5)),
-  neurology(Color(0xFF4D4DE8), Color(0xFFA99BF5)),
-  pediatrics(Color(0xFF6CC4A1), Color(0xFFCDE6D8)),
-  pharmacology(Color(0xFF2F5BEA), Color(0xFF8FB3FF));
+  surgery(Color(0xFFC8441B), Color(0xFF1F0905)),
+  therapy(Color(0xFFC42A78), Color(0xFF1D0614)),
+  cardiology(Color(0xFFC42346), Color(0xFF1C0510)),
+  neurology(Color(0xFF5A43E0), Color(0xFF0D0A2A)),
+  pediatrics(Color(0xFF16806A), Color(0xFF03140F)),
+  pharmacology(Color(0xFF2F5BE0), Color(0xFF060F2A));
 
   const Aura(this.start, this.end);
 
@@ -125,16 +137,15 @@ enum Aura {
   /// Неизвестный токен (новая дисциплина в старой версии приложения) не роняет экран.
   static Aura fromToken(String? token) => values.firstWhere((aura) => aura.name == token, orElse: () => surgery);
 
-  LinearGradient get gradient =>
-      LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [start, end]);
+  /// Самое яркое место карточки: свечение поверх основы. По нему проверяется контраст текста.
+  Color get peak => Color.lerp(end, start, AuraInk.glowStrength)!;
 }
 
-/// Текст на ауре — тёмный поверх светлой вуали: белый текст на светлых концах градиентов
-/// давал контраст 1.3–4.1, тёмный на вуали 30 % — не ниже 5.9.
+/// Текст на ауре — белый: свечение подобрано так, что даже в самой яркой точке контраст ≥ 4.5.
 abstract final class AuraInk {
-  static const ink = Color(0xFF0B0B0D);
-  static const inkMuted = Color(0xD90B0B0D);
-  static const veilOpacity = 0.3;
+  static const ink = Color(0xFFFFFFFF);
+  static const inkMuted = Color(0xDBFFFFFF);
+  static const glowStrength = 0.85;
 }
 
 abstract final class SrSpace {
@@ -147,8 +158,8 @@ abstract final class SrSpace {
 }
 
 abstract final class SrRadius {
-  static const double card = 28;
-  static const double tile = 20;
+  static const double card = 32;
+  static const double tile = 26;
   static const double pill = 999;
 }
 

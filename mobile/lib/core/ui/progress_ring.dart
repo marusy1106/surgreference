@@ -27,7 +27,7 @@ class ProgressRing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SrColors.of(context);
-    final ink = color ?? c.accent;
+    final ink = color ?? c.marker;
     return Semantics(
       label: semanticLabel,
       excludeSemantics: true,

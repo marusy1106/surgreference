@@ -4,7 +4,9 @@ import '../../app/theme/theme.dart';
 
 enum PillButtonVariant { primary, secondary }
 
-/// Кнопка-пилюля с круглой стрелкой справа: «Начать →», «Продолжить →», «Ответить».
+/// Кнопка-пилюля со стрелкой в круге, как «Let's start» и «Start tracking» в референсах.
+/// Тёмная тема: полупрозрачная пилюля с белым кругом; светлая: чёрная пилюля с белым кругом.
+/// Вторичная — контурная, со стрелкой в контурном круге.
 class PillButton extends StatelessWidget {
   const PillButton({
     super.key,
@@ -26,9 +28,13 @@ class PillButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = SrColors.of(context);
+    final dark = Theme.of(context).brightness == Brightness.dark;
     final primary = variant == PillButtonVariant.primary;
-    final bg = primary ? c.accent : c.surface2;
-    final fg = primary ? c.onAccent : c.text;
+    final (Color fill, Color ink, Color border) = switch ((primary, dark)) {
+      (true, true) => (c.text.withValues(alpha: 0.12), c.text, c.text.withValues(alpha: 0.22)),
+      (true, false) => (c.accent, c.onAccent, c.accent),
+      (false, _) => (Colors.transparent, c.text, c.text.withValues(alpha: 0.35)),
+    };
     final enabled = onPressed != null;
     final content = Row(
       mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
@@ -36,15 +42,20 @@ class PillButton extends StatelessWidget {
         const SizedBox(width: SrSpace.xl - SrSpace.s),
         Flexible(
           fit: expand ? FlexFit.tight : FlexFit.loose,
-          child: Text(label, style: Theme.of(context).textTheme.labelLarge!.copyWith(color: fg, fontSize: 16)),
+          child: Text(label, style: Theme.of(context).textTheme.labelLarge!.copyWith(color: ink, fontSize: 16)),
         ),
         if (showArrow) ...[
           const SizedBox(width: SrSpace.m),
           Container(
             width: 40,
             height: 40,
-            decoration: BoxDecoration(color: fg, shape: BoxShape.circle),
-            child: Icon(Icons.arrow_forward_rounded, size: 20, color: bg),
+            decoration: primary
+                ? BoxDecoration(color: ink, shape: BoxShape.circle)
+                : BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: border),
+                  ),
+            child: Icon(Icons.arrow_forward_rounded, size: 20, color: primary ? (dark ? c.onAccent : c.accent) : ink),
           ),
         ] else
           const SizedBox(width: SrSpace.xl - SrSpace.s),
@@ -57,8 +68,8 @@ class PillButton extends StatelessWidget {
         opacity: enabled ? 1 : 0.4,
         duration: SrMotion.fast,
         child: Material(
-          color: bg,
-          shape: const StadiumBorder(),
+          color: fill,
+          shape: StadiumBorder(side: BorderSide(color: border)),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             onTap: onPressed,

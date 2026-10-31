@@ -36,7 +36,7 @@ class RulerScale extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(height: 28, child: CustomPaint(painter: _RulerPainter(value.clamp(0, 1), ticks, ink, c.accent))),
+          SizedBox(height: 28, child: CustomPaint(painter: _RulerPainter(value.clamp(0, 1), ticks, ink, c.marker))),
           if (startLabel != null || endLabel != null) ...[
             const SizedBox(height: SrSpace.xs),
             Row(
