@@ -1,0 +1,61 @@
+{% extends "admin/base_site.html" %}
+{% block title %}Редакционный процесс · {{ original }}{% endblock %}
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">Начало</a>
+  › <a href="{% url changelist_url %}">{{ opts.verbose_name_plural|capfirst }}</a>
+  › <a href="../change/">{{ original }}</a>
+  › Редакционный процесс
+</div>
+{% endblock %}
+{% block content %}
+<div id="content-main">
+  <h1>{{ original }}</h1>
+  <table>
+    <tr><th>Статус</th><td><strong>{{ original.get_status_display }}</strong></td></tr>
+    <tr><th>Дисциплина</th><td>{{ discipline|default:"—" }}</td></tr>
+    <tr><th>Автор</th><td>{{ original.author }}</td></tr>
+    <tr><th>Рецензент</th><td>{{ original.reviewer|default:"—" }}</td></tr>
+    <tr><th>Рецензенты дисциплины</th><td>{{ reviewers|join:", "|default:"не назначены — назначьте в карточке дисциплины" }}</td></tr>
+    {% if original.published_at %}<tr><th>Опубликовано</th><td>{{ original.published_at }}</td></tr>{% endif %}
+  </table>
+
+  {% if problems %}
+    <h2>Что мешает отправить на проверку</h2>
+    <ul class="errorlist">{% for p in problems %}<li>{{ p }}</li>{% endfor %}</ul>
+  {% endif %}
+
+  {% if actions %}
+    <h2>Действия</h2>
+    <form method="post">{% csrf_token %}
+      <p><label for="comment">Комментарий (обязателен, если возвращаете, отклоняете или снимаете с публикации)</label><br>
+        <textarea id="comment" name="comment" rows="4" cols="80"></textarea></p>
+      {% if "approve" in actions and original.editorial_requires_attestation %}
+        <p><label><input type="checkbox" name="attest_synthetic" value="1">
+          Подтверждаю: пациент вымышлен, совпадений с реальными людьми и историями болезни нет</label></p>
+      {% endif %}
+      <div class="submit-row" style="justify-content:flex-start">
+        {% for action, label in action_labels %}
+          <button type="submit" name="action" value="{{ action }}" class="button{% if forloop.first %} default{% endif %}">{{ label }}</button>
+        {% endfor %}
+      </div>
+    </form>
+  {% else %}
+    <p>Для вас сейчас нет доступных действий.</p>
+  {% endif %}
+
+  <h2>Журнал</h2>
+  {% if history %}
+    <table>
+      <thead><tr><th>Когда</th><th>Кто</th><th>Решение</th><th>Комментарий</th></tr></thead>
+      <tbody>
+      {% for h in history %}
+        <tr><td>{{ h.created_at }}</td><td>{{ h.reviewer }}</td><td>{{ h.get_decision_display }}</td><td>{{ h.comment|linebreaksbr }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Записей пока нет.</p>
+  {% endif %}
+</div>
+{% endblock %}

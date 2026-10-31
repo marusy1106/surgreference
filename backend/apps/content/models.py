@@ -43,8 +43,39 @@ class ReviewedContent(TimeStampedModel):
     reviewed_at = models.DateTimeField(null=True, blank=True)
     published_at = models.DateTimeField(null=True, blank=True)
 
+    # Подтверждение рецензентом, что пациент вымышлен (кейсы): без него не одобрить.
+    editorial_requires_attestation = False
+
     class Meta:
         abstract = True
+
+    # --- Редакционный процесс (content.editorial): модели уточняют свои правила --------------
+
+    def editorial_discipline_id(self) -> int:
+        """Дисциплина — по ней выбираются рецензенты."""
+        raise NotImplementedError
+
+    def editorial_problems(self) -> list[str]:
+        """Что мешает отправить на проверку и опубликовать (кроме источников — их проверяет editorial)."""
+        return []
+
+    def editorial_previous(self):
+        """Опубликованная версия, которую заменит эта; None — первая публикация."""
+        return None
+
+    def editorial_on_published(self, previous):
+        """Переключить ссылки на новую версию (урок → ревизия, тест → вопрос)."""
+
+    def editorial_on_withdrawn(self):
+        """Снятие с публикации без замены."""
+
+    def editorial_open_successor(self):
+        """Уже начатая новая версия (не опубликована и не в архиве)."""
+        return None
+
+    def editorial_copy(self, author):
+        """Черновик следующей версии с тем же содержимым."""
+        raise NotImplementedError
 
 
 def reviewed_content_constraints():
@@ -120,6 +151,13 @@ class Discipline(TimeStampedModel):
     sort_order = models.PositiveIntegerField(default=0)
     status = models.CharField(max_length=16, choices=CatalogStatus, default=CatalogStatus.DRAFT)
     is_premium = models.BooleanField(default=False)
+    reviewers = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        related_name="reviewed_disciplines",
+        verbose_name="медицинские рецензенты",
+        help_text="Кто может одобрять контент дисциплины. Нужна также роль medical_reviewer.",
+    )
 
     class Meta:
         verbose_name = "дисциплина"
@@ -209,15 +247,81 @@ class LessonRevision(ReviewedContent):
     def __str__(self):
         return f"{self.title} v{self.version}"
 
+    def editorial_discipline_id(self):
+        return self.lesson.topic.discipline_id
+
+    def editorial_problems(self):
+        problems = [] if self.title.strip() else ["Нет заголовка"]
+        if not isinstance(self.body, list) or not self.body:
+            return [*problems, "Урок пустой: в body нет блоков"]
+        for i, block in enumerate(self.body, 1):
+            problems += [f"Блок {i}: {p}" for p in lesson_block_problems(block)]
+        return problems
+
+    def editorial_previous(self):
+        current = self.lesson.published_revision
+        return current if current and current.pk != self.pk else None
+
+    def editorial_on_published(self, previous):
+        Lesson.objects.filter(pk=self.lesson_id).update(published_revision=self)
+
+    def editorial_on_withdrawn(self):
+        Lesson.objects.filter(pk=self.lesson_id, published_revision=self).update(published_revision=None)
+
+    def editorial_open_successor(self):
+        return (
+            self.lesson.revisions.exclude(status__in=[ReviewStatus.PUBLISHED, ReviewStatus.ARCHIVED])
+            .exclude(pk=self.pk)
+            .first()
+        )
+
+    def editorial_copy(self, author):
+        last = self.lesson.revisions.order_by("-version").values_list("version", flat=True).first()
+        return LessonRevision.objects.create(
+            lesson=self.lesson,
+            version=last + 1,
+            title=self.title,
+            body=self.body,
+            estimated_minutes=self.estimated_minutes,
+            author=author,
+        )
+
+
+LESSON_BLOCK_FIELDS = {
+    "paragraph": ("text",),
+    "heading": ("text",),
+    "callout": ("text",),
+    "list": ("items",),
+    "table": ("header", "rows"),
+}
+
+
+def lesson_block_problems(block) -> list[str]:
+    """Блоки, которые умеет показывать приложение (docs/05, 5.1): тип и обязательные поля."""
+    if not isinstance(block, dict):
+        return ['должен быть объектом {"type": …}']
+    kind = block.get("type")
+    if kind not in LESSON_BLOCK_FIELDS:
+        return [f"неизвестный тип «{kind}», допустимы: {', '.join(LESSON_BLOCK_FIELDS)}"]
+    missing = [f for f in LESSON_BLOCK_FIELDS[kind] if not block.get(f)]
+    if missing:
+        return [f"{kind}: не заполнено {', '.join(missing)}"]
+    if kind == "table" and any(len(row) != len(block["header"]) for row in block["rows"]):
+        return ["table: в строке не столько ячеек, сколько в заголовке"]
+    return []
+
 
 class ContentReviewDecision(models.TextChoices):
-    APPROVE = "approve", "одобрить"
-    REQUEST_CHANGES = "request_changes", "вернуть на доработку"
-    REJECT = "reject", "отклонить"
+    SUBMIT = "submit", "отправлено на проверку"
+    APPROVE = "approve", "одобрено"
+    REQUEST_CHANGES = "request_changes", "возвращено на доработку"
+    REJECT = "reject", "отклонено"
+    PUBLISH = "publish", "опубликовано"
+    WITHDRAW = "withdraw", "снято с публикации"
 
 
 class ContentReview(models.Model):
-    """История решений рецензентов по любой единице контента."""
+    """Журнал редакционного процесса по любой единице контента: кто и какое решение принял."""
 
     Decision = ContentReviewDecision
 

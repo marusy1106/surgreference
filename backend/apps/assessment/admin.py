@@ -1,26 +1,28 @@
 from django.contrib import admin
 
+from apps.content.admin_editorial import EditorialAdmin, EditorialLockMixin
+
 from .models import AnswerOption, Question, Quiz, QuizAttempt, QuizQuestion
 
 
-class AnswerOptionInline(admin.TabularInline):
+class AnswerOptionInline(EditorialLockMixin, admin.TabularInline):
     model = AnswerOption
     extra = 0
 
 
 @admin.register(Question)
-class QuestionAdmin(admin.ModelAdmin):
+class QuestionAdmin(EditorialAdmin):
+    discipline_lookup = "topic__discipline"
     list_display = (
-        "id",
+        "__str__",
         "topic",
         "kind",
         "difficulty",
-        "version",
         "status",
         "reviewer",
     )
-    list_filter = ("status", "kind", "difficulty", "topic__discipline")
-    raw_id_fields = ("topic", "author", "reviewer", "previous_version")
+    list_filter = ("kind", "difficulty", "topic__discipline")
+    raw_id_fields = ("topic",)
     inlines = [AnswerOptionInline]
 
 

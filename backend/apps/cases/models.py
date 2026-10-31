@@ -54,8 +54,69 @@ class ClinicalCase(ReviewedContent):
             ),
         ]
 
+    editorial_requires_attestation = True
+
     def __str__(self):
-        return self.title
+        return f"{self.title} v{self.version}"
+
+    def editorial_discipline_id(self):
+        return self.discipline_id
+
+    def editorial_problems(self):
+        problems = [] if self.debrief.strip() else ["Нет итогового разбора"]
+        steps = list(self.steps.prefetch_related("choices"))
+        if not any(s.kind == CaseStepKind.DECISION for s in steps):
+            problems.append("В кейсе нет ни одного шага с решением")
+        for step in steps:
+            if step.kind != CaseStepKind.DECISION:
+                continue
+            choices = list(step.choices.all())
+            if len(choices) < 2:
+                problems.append(f"Шаг {step.sort_order}: нужно хотя бы два варианта")
+            if not any(c.quality == CaseChoiceQuality.OPTIMAL for c in choices):
+                problems.append(f"Шаг {step.sort_order}: нет оптимального варианта")
+            if any(not c.feedback.strip() for c in choices):
+                problems.append(f"Шаг {step.sort_order}: у каждого варианта нужна обратная связь")
+        return problems
+
+    def editorial_previous(self):
+        previous = self.previous_version
+        return previous if previous and previous.status == ReviewStatus.PUBLISHED else None
+
+    def editorial_open_successor(self):
+        return self.next_versions.exclude(status__in=[ReviewStatus.PUBLISHED, ReviewStatus.ARCHIVED]).first()
+
+    def editorial_copy(self, author):
+        copy = ClinicalCase.objects.create(
+            discipline=self.discipline,
+            title=self.title,
+            summary=self.summary,
+            debrief=self.debrief,
+            difficulty=self.difficulty,
+            version=self.version + 1,
+            previous_version=self,
+            is_premium=self.is_premium,
+            author=author,
+        )
+        steps = {}
+        for step in self.steps.all():
+            steps[step.pk] = CaseStep.objects.create(
+                case=copy, sort_order=step.sort_order, kind=step.kind, content=step.content
+            )
+        for step_id, new_step in steps.items():
+            CaseChoice.objects.bulk_create(
+                CaseChoice(
+                    step=new_step,
+                    text=c.text,
+                    quality=c.quality,
+                    score_delta=c.score_delta,
+                    feedback=c.feedback,
+                    next_step=steps.get(c.next_step_id),
+                    sort_order=c.sort_order,
+                )
+                for c in CaseChoice.objects.filter(step_id=step_id)
+            )
+        return copy
 
 
 class CaseStepKind(models.TextChoices):

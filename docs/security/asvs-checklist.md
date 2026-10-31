@@ -41,7 +41,7 @@
 | Роли сотрудников с наименьшими привилегиями, аналитик без доступа к email | ✅ | `roles.py`; `test_roles_synced_with_least_privilege` |
 | Роли выдаёт только superadmin, изменение — в журнал и письмо остальным superadmin | ✅ | `UserAdmin`; `test_only_superadmin_changes_roles` |
 | Пользователей нельзя удалить из админки — только обезличить | ✅ | `test_users_cannot_be_deleted_only_anonymized` |
-| Правила редакционного процесса (рецензент ≠ автор, публикует chief_editor) | 🟡 | ограничения БД — ✅ (этап 2); проверка роли при публикации — ⏳ 5 |
+| Правила редакционного процесса (рецензент ≠ автор, публикует chief_editor) | ✅ | ограничения БД (этап 2) + `content.editorial`: роль и закрепление рецензента за дисциплиной, публикация только chief_editor, журнал `ContentReview`; тесты `apps/content/tests/test_editorial.py` |
 | Админка только из allowlist IP / VPN | ⏳ 8 | reverse proxy |
 
 ## V5. Валидация входных данных

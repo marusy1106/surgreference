@@ -7,6 +7,7 @@ from django.utils import timezone
 from apps.content.models import (
     CatalogStatus,
     ReviewedContent,
+    ReviewStatus,
     reviewed_content_constraints,
 )
 from apps.core.models import TimeStampedModel, UUIDModel, choices_check, range_check
@@ -44,6 +45,63 @@ class Question(ReviewedContent):
             range_check("difficulty", 1, 3),
         ]
         indexes = [models.Index(fields=["topic", "status"])]
+
+    def __str__(self):
+        text = (
+            " ".join(b.get("text", "") for b in self.stem if isinstance(b, dict)) if isinstance(self.stem, list) else ""
+        )
+        return f"{text[:80] or 'Вопрос'} v{self.version}"
+
+    def editorial_discipline_id(self):
+        return self.topic.discipline_id
+
+    def editorial_problems(self):
+        problems = []
+        if not any(isinstance(b, dict) and str(b.get("text", "")).strip() for b in self.stem or []):
+            problems.append("Нет условия вопроса")
+        options = list(self.options.all())
+        correct = sum(o.is_correct for o in options)
+        if len(options) < 2:
+            problems.append("Нужно хотя бы два варианта ответа")
+        if correct == 0:
+            problems.append("Не отмечен правильный вариант")
+        if self.kind == QuestionKind.SINGLE and correct > 1:
+            problems.append("В вопросе с одним ответом отмечено несколько правильных")
+        if any(not o.explanation.strip() for o in options):
+            problems.append("У каждого варианта нужно объяснение, почему он верный или нет")
+        return problems
+
+    def editorial_previous(self):
+        previous = self.previous_version
+        return previous if previous and previous.status == ReviewStatus.PUBLISHED else None
+
+    def editorial_on_published(self, previous):
+        # Тесты, где был прежний вопрос, получают новую версию на то же место.
+        if previous is not None:
+            QuizQuestion.objects.filter(question=previous).update(question=self)
+
+    def editorial_open_successor(self):
+        return self.next_versions.exclude(status__in=[ReviewStatus.PUBLISHED, ReviewStatus.ARCHIVED]).first()
+
+    def editorial_copy(self, author):
+        copy = Question.objects.create(
+            topic=self.topic,
+            kind=self.kind,
+            stem=self.stem,
+            explanation=self.explanation,
+            difficulty=self.difficulty,
+            version=self.version + 1,
+            previous_version=self,
+            is_premium=self.is_premium,
+            author=author,
+        )
+        AnswerOption.objects.bulk_create(
+            AnswerOption(
+                question=copy, text=o.text, is_correct=o.is_correct, explanation=o.explanation, sort_order=o.sort_order
+            )
+            for o in self.options.all()
+        )
+        return copy
 
 
 class AnswerOption(models.Model):

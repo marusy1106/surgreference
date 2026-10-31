@@ -62,3 +62,16 @@ def as_user():
 def human_speed(monkeypatch):
     """Тесты отвечают мгновенно; отключаем порог «похоже на автоматизацию», где он не проверяется."""
     monkeypatch.setattr("apps.assessment.services.SUSPICIOUS_AVG_ANSWER_MS", 0)
+
+
+@pytest.fixture
+def staff(make_user):
+    """Сотрудник с ролями редакции: staff("content_author"), staff("medical_reviewer", "chief_editor")."""
+    from django.contrib.auth.models import Group
+
+    def factory(*roles):
+        user = make_user(is_staff=True)
+        user.groups.set(Group.objects.filter(name__in=roles))
+        return user
+
+    return factory
