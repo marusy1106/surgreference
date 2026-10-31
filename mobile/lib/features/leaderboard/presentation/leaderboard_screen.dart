@@ -37,6 +37,8 @@ class LeaderboardScreen extends StatelessWidget {
     this.onOptIn,
     this.note,
     this.emptyMessage = 'Участников пока нет.',
+    this.emptyActionLabel,
+    this.onEmptyAction,
   });
 
   final List<LeaderboardRowView> rows;
@@ -57,6 +59,10 @@ class LeaderboardScreen extends StatelessWidget {
   final ValueChanged<bool>? onOptIn;
   final String? note;
   final String emptyMessage;
+
+  /// Кнопка под пустой таблицей — например, «Указать вуз».
+  final String? emptyActionLabel;
+  final VoidCallback? onEmptyAction;
 
   @override
   Widget build(BuildContext context) {
@@ -124,6 +130,10 @@ class LeaderboardScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: SrSpace.l),
                       child: Text(emptyMessage, style: theme.bodyMedium!.copyWith(color: c.textMuted)),
                     ),
+                  if (rows.isEmpty && emptyActionLabel != null) ...[
+                    PillButton(label: emptyActionLabel!, onPressed: onEmptyAction),
+                    const SizedBox(height: SrSpace.l),
+                  ],
                   for (final row in rows) ...[_Row(row), const SizedBox(height: SrSpace.s)],
                   const SizedBox(height: SrSpace.s),
                   Text(

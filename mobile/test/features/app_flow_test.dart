@@ -265,6 +265,107 @@ void main() {
     expect(backend.log, contains('PUT me/leaderboard-participation Bearer a2'));
   });
 
+  testWidgets('education: profile shows the status, switching status resets the specialty', (tester) async {
+    Map<String, dynamic>? sent;
+    backend.routes['PUT me/education'] = (_, body) {
+      sent = body;
+      return FakeResponse(200, fixture('education'));
+    };
+    await store.writeRefresh('r1');
+    await pumpApp(tester);
+    await tapText(tester, 'Профиль');
+    expect(find.text('Студент, 5 курс'), findsOneWidget);
+    expect(find.text('Сеченовский университет · Лечебное дело'), findsOneWidget);
+
+    await tapText(tester, 'Студент, 5 курс');
+    await tapText(tester, 'Ординатор');
+    expect(find.text('Выбрать специальность'), findsOneWidget, reason: 'specialitet does not fit a resident');
+    await tapText(tester, '2 год');
+    await tapText(tester, 'Сохранить');
+
+    expect(sent, containsPair('status', 'resident'));
+    expect(sent, containsPair('university_id', 1));
+    expect(sent, containsPair('specialty_id', null));
+    expect(sent, containsPair('study_year', 2));
+    expect(sent, containsPair('course', null));
+    expect(find.text('Учебный профиль сохранён'), findsOneWidget);
+  });
+
+  testWidgets('new user: home suggests the profile, university comes from search', (tester) async {
+    backend.routes.addAll(learningRoutes(newUser: true));
+    Map<String, dynamic>? sent;
+    backend.routes['PUT me/education'] = (_, body) {
+      sent = body;
+      return FakeResponse(200, fixture('education'));
+    };
+    await store.writeRefresh('r1');
+    await pumpApp(tester);
+    await tapText(tester, 'Укажите вуз и курс');
+
+    await tapText(tester, 'Студент');
+    await tapText(tester, 'Выбрать вуз');
+    await tester.enterText(find.byType(TextField), 'москва');
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pumpAndSettle();
+    await tapText(tester, 'Сеченовский университет');
+    expect(find.text('Сеченовский университет'), findsOneWidget);
+    await tapText(tester, 'Выбрать специальность');
+    await tapText(tester, 'Лечебное дело');
+    await tapText(tester, '3 курс');
+    await tapText(tester, 'Сохранить');
+
+    expect(sent, {
+      'status': 'student',
+      'university_id': 1,
+      'faculty_id': null,
+      'specialty_id': 1,
+      'course': 3,
+      'study_year': null,
+      'graduation_year': null,
+    });
+  });
+
+  testWidgets('missing university goes to moderation as a request', (tester) async {
+    backend.routes.addAll(learningRoutes(newUser: true));
+    await store.writeRefresh('r1');
+    await pumpApp(tester);
+    await tapText(tester, 'Профиль');
+    await tapText(tester, 'Не указан');
+    await tapText(tester, 'Врач');
+    await tapText(tester, 'Выбрать вуз');
+    await tapText(tester, 'Моего вуза нет');
+    await tester.enterText(find.widgetWithText(TextField, 'Название вуза'), 'Новый медуниверситет');
+    await tester.enterText(find.widgetWithText(TextField, 'Город'), 'Тула');
+    await tapText(tester, 'Отправить');
+
+    expect(backend.log, contains(startsWith('POST universities/requests')));
+    expect(find.text('Новый медуниверситет'), findsOneWidget);
+    expect(find.text('Заявка на проверке'), findsOneWidget);
+  });
+
+  testWidgets('education screens at 200% text without layout errors', (tester) async {
+    await store.writeRefresh('r1');
+    await pumpApp(tester, textScale: 2);
+    await tapText(tester, 'Профиль');
+    await tapText(tester, 'Студент, 5 курс');
+    expect(tester.takeException(), isNull);
+    await tapText(tester, 'Сеченовский университет');
+    await tester.scrollUntilVisible(find.text('Моего вуза нет'), 200, scrollable: find.byType(Scrollable).first);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('education prompt on home can be dismissed', (tester) async {
+    backend.routes.addAll(learningRoutes(newUser: true));
+    await store.writeRefresh('r1');
+    await pumpApp(tester);
+    expect(find.text('Укажите вуз и курс'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Не сейчас'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Укажите вуз и курс'), findsNothing);
+  });
+
   testWidgets('logout from profile returns to the welcome screen', (tester) async {
     await store.writeRefresh('r1');
     await pumpApp(tester);

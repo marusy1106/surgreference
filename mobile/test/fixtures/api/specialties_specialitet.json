@@ -1,0 +1,50 @@
+[
+ {
+  "id": 6,
+  "code": "30.05.01",
+  "name": "Медицинская биохимия",
+  "level": "specialitet"
+ },
+ {
+  "id": 7,
+  "code": "30.05.02",
+  "name": "Медицинская биофизика",
+  "level": "specialitet"
+ },
+ {
+  "id": 8,
+  "code": "30.05.03",
+  "name": "Медицинская кибернетика",
+  "level": "specialitet"
+ },
+ {
+  "id": 1,
+  "code": "31.05.01",
+  "name": "Лечебное дело",
+  "level": "specialitet"
+ },
+ {
+  "id": 2,
+  "code": "31.05.02",
+  "name": "Педиатрия",
+  "level": "specialitet"
+ },
+ {
+  "id": 3,
+  "code": "31.05.03",
+  "name": "Стоматология",
+  "level": "specialitet"
+ },
+ {
+  "id": 4,
+  "code": "32.05.01",
+  "name": "Медико-профилактическое дело",
+  "level": "specialitet"
+ },
+ {
+  "id": 5,
+  "code": "33.05.01",
+  "name": "Фармация",
+  "level": "specialitet"
+ }
+]

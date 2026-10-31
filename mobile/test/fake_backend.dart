@@ -113,5 +113,11 @@ Map<String, Handler> learningRoutes({bool newUser = false}) {
     'GET leaderboards/users': (_, _) => FakeResponse(200, fixture('board_users')),
     'GET leaderboards/universities': (_, _) => FakeResponse(200, fixture('board_universities')),
     'PUT me/leaderboard-participation': (_, body) => FakeResponse(200, body),
+    'GET me/education': (_, _) => FakeResponse(200, fixture(newUser ? 'education_empty' : 'education')),
+    'PUT me/education': (_, _) => FakeResponse(200, fixture('education')),
+    'DELETE me/education': (_, _) => const FakeResponse(204),
+    'GET universities': (_, _) => FakeResponse(200, fixture('universities_search')),
+    'GET specialties': (_, _) => FakeResponse(200, fixture('specialties_specialitet')),
+    'POST universities/requests': (_, body) => FakeResponse(201, body),
   };
 }

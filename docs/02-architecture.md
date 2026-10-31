@@ -118,7 +118,8 @@ GET    /auth/sessions                 DELETE /auth/sessions/{id}     DELETE /aut
 
 GET    /me                            PATCH /me                      GET  /me/consents
 POST   /me/deletion-code              POST /me/delete {code}         POST /me/export
-GET    /me/education                  PUT  /me/education             GET  /me/education/history
+GET    /me/education                  PUT  /me/education             DELETE /me/education
+GET    /me/education/history
 
 GET    /universities?search=          GET  /universities/{id}/faculties   GET /specialties
 POST   /universities/requests

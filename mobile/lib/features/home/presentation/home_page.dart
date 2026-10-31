@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/async_view.dart';
 import '../../../app/routes.dart';
+import '../../education/education_providers.dart';
 import '../../learning/learning_providers.dart';
 import 'home_screen.dart';
 
@@ -27,6 +28,8 @@ class HomePage extends ConsumerWidget {
           onCase: () => context.push(Routes.clinicalCase(view.caseOfDay!.id)),
           onProgress: () => context.push(Routes.progress),
           onCatalog: () => context.go(Routes.catalog),
+          onEducation: () => context.push(Routes.education),
+          onDismissEducation: () => ref.read(educationPromptDismissedProvider.notifier).dismiss(),
         ),
       ),
     );

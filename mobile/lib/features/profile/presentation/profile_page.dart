@@ -46,8 +46,10 @@ class ProfilePage extends ConsumerWidget {
           await context.push(Routes.deleteAccount);
         case ProfileAction.logout:
           await ref.read(authControllerProvider.notifier).logout();
-        case ProfileAction.feedback || ProfileAction.education:
-          message('Этот раздел появится вместе с учебным профилем и обратной связью на сервере.');
+        case ProfileAction.education:
+          await context.push(Routes.education);
+        case ProfileAction.feedback:
+          message('Обратная связь появится в следующем обновлении.');
       }
     }
 

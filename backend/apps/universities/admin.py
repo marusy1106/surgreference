@@ -1,5 +1,6 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 
+from . import services
 from .models import (
     EducationProfile,
     Faculty,
@@ -24,7 +25,7 @@ class EmailDomainInline(admin.TabularInline):
 class UniversityAdmin(admin.ModelAdmin):
     list_display = ("name", "short_name", "city", "is_active")
     list_filter = ("is_active", "region")
-    search_fields = ("name", "short_name", "city")
+    search_fields = ("name", "short_name", "aliases", "city")
     inlines = [FacultyInline, EmailDomainInline]
 
 
@@ -37,9 +38,32 @@ class SpecialtyAdmin(admin.ModelAdmin):
 
 @admin.register(UniversityRequest)
 class UniversityRequestAdmin(admin.ModelAdmin):
-    list_display = ("name", "city", "status", "created_at")
+    list_display = ("name", "city", "status", "resolved_university", "created_at")
     list_filter = ("status",)
     raw_id_fields = ("user", "resolved_university")
+    actions = ["approve", "merge", "reject"]
+
+    def _new(self, queryset):
+        return queryset.filter(status=UniversityRequest.Status.NEW)
+
+    @admin.action(description="Одобрить: создать вуз из заявки")
+    def approve(self, request, queryset):
+        for item in self._new(queryset):
+            services.approve_request(item)
+        self.message_user(request, "Вузы созданы и подставлены в профили. Проверьте название и город.")
+
+    @admin.action(description="Объединить с вузом из поля «resolved university»")
+    def merge(self, request, queryset):
+        for item in self._new(queryset):
+            if item.resolved_university is None:
+                self.message_user(request, f"«{item.name}»: сначала выберите вуз", messages.WARNING)
+                continue
+            services.resolve_request(item, item.resolved_university, UniversityRequest.Status.MERGED)
+
+    @admin.action(description="Отклонить")
+    def reject(self, request, queryset):
+        for item in self._new(queryset):
+            services.reject_request(item)
 
 
 @admin.register(EducationProfile)

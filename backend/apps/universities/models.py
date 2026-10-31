@@ -8,6 +8,12 @@ from apps.core.models import TimeStampedModel, choices_check, range_check
 class University(TimeStampedModel):
     name = models.CharField("название", max_length=255)
     short_name = models.CharField("сокращение", max_length=64, blank=True)
+    aliases = models.CharField(
+        "другие названия",
+        max_length=500,
+        blank=True,
+        help_text="Через запятую — по ним тоже ищут: «Первый мед, Сеченовка».",
+    )
     city = models.CharField("город", max_length=128)
     region = models.CharField("регион", max_length=128, blank=True)
     is_active = models.BooleanField(default=True)

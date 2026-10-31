@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../app/async_view.dart';
 import '../../../app/providers.dart';
+import '../../../app/routes.dart';
 import '../../../core/api/api_error.dart';
 import '../../learning/data/learning_models.dart';
 import '../../learning/learning_providers.dart';
@@ -53,6 +55,8 @@ class _LeaderboardPageState extends ConsumerState<LeaderboardPage> {
             : _mode == LeaderboardMode.universities
             ? 'Пока ни в одном вузе не набралось достаточно активных участников.'
             : 'За этот период участников ещё нет. Пройдите урок или тест — и вы станете первым.',
+        emptyActionLabel: board.needsUniversity ? 'Указать вуз' : null,
+        onEmptyAction: () => context.push(Routes.education),
         onMode: (m) => setState(() => _mode = m),
         onScope: (s) => setState(() => _scope = s),
         onPeriod: () => setState(() {

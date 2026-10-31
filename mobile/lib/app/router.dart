@@ -19,6 +19,8 @@ import '../features/onboarding/presentation/onboarding_screen.dart';
 import '../features/practice/presentation/practice_page.dart';
 import '../features/profile/presentation/profile_page.dart';
 import '../features/progress/presentation/progress_page.dart';
+import '../features/education/presentation/education_page.dart';
+import '../features/education/presentation/university_search_page.dart';
 import '../features/learning/data/learning_models.dart';
 import '../features/quiz/presentation/quiz_flow_page.dart';
 import '../features/settings/presentation/change_password_page.dart';
@@ -134,6 +136,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       page(Routes.sessions, (_) => const SessionsPage()),
       page(Routes.password, (_) => const ChangePasswordPage()),
       page(Routes.deleteAccount, (_) => const DeleteAccountPage()),
+      page(Routes.education, (_) => const EducationPage()),
+      page(Routes.universitySearch, (_) => const UniversitySearchPage()),
     ],
   );
 });

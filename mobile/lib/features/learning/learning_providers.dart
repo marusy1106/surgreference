@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/providers.dart';
 import '../catalog/presentation/catalog_screen.dart';
+import '../education/data/education_models.dart';
+import '../education/education_providers.dart';
 import '../home/presentation/home_screen.dart';
 import '../leaderboard/presentation/leaderboard_screen.dart';
 import '../lesson/presentation/lesson_screen.dart';
@@ -28,6 +30,11 @@ final practiceProvider = FutureProvider.autoDispose<List<PracticeDiscipline>>(
 final homeProvider = FutureProvider.autoDispose<HomeView>((ref) async {
   final overview = await ref.watch(overviewProvider.future);
   final cases = await ref.watch(casesProvider.future);
+  final dismissed = ref.watch(educationPromptDismissedProvider);
+  // Без профиля главная работает: ошибка загрузки профиля только прячет карточку.
+  final education = dismissed
+      ? null
+      : await ref.watch(educationProvider.future).then<EducationProfile?>((e) => e, onError: (Object _) => null);
   final lesson = overview.continueLesson;
   final quiz = overview.lastQuiz;
   // «Кейс дня» меняется ежедневно: детерминированный выбор по номеру дня.
@@ -55,6 +62,7 @@ final homeProvider = FutureProvider.autoDispose<HomeView>((ref) async {
     weekXpDelta: overview.weekXp - overview.previousWeekXp,
     mastery: overview.averageMastery,
     weakTopic: overview.weakTopic?.title,
+    askEducation: education != null && education.status == null,
   );
 });
 
@@ -126,13 +134,14 @@ const achievementIcons = <String, IconData>{
 final profileProvider = FutureProvider.autoDispose<ProfileView>((ref) async {
   final overview = await ref.watch(overviewProvider.future);
   final achievements = await ref.watch(learningRepositoryProvider).achievements();
+  final education = await ref.watch(educationProvider.future);
   final earnedFirst = [...achievements]..sort((a, b) => (b.earned ? 1 : 0) - (a.earned ? 1 : 0));
   return ProfileView(
     nickname: ref.watch(nicknameProvider),
     level: overview.level,
     xpTotal: overview.totalXp,
-    status: 'Не указан',
-    university: 'Учебный профиль появится в следующем обновлении',
+    status: education.statusLine,
+    university: education.universityLine,
     achievements: [
       for (final a in earnedFirst)
         AchievementView(title: a.title, icon: achievementIcons[a.icon] ?? Icons.star_rounded, unlocked: a.earned),

@@ -56,7 +56,7 @@ def user_board(user, *, period, scope):
             "rank": rank,
             "display_name": person.display_name,
             "level": levels.get(uid, 1),
-            "university": education.university.name if education and education.university else None,
+            "university": str(education.university) if education and education.university else None,
             "xp": xp,
             "is_me": uid == user.pk,
         }

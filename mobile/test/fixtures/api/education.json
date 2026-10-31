@@ -1,0 +1,21 @@
+{
+ "status": "student",
+ "university": {
+  "id": 1,
+  "name": "Первый Московский государственный медицинский университет имени И. М. Сеченова",
+  "short_name": "Сеченовский университет",
+  "city": "Москва"
+ },
+ "faculty": null,
+ "specialty": {
+  "id": 1,
+  "code": "31.05.01",
+  "name": "Лечебное дело",
+  "level": "specialitet"
+ },
+ "course": 5,
+ "study_year": null,
+ "graduation_year": null,
+ "verification_status": "unverified",
+ "university_request": null
+}

@@ -14,6 +14,7 @@ class HomeView {
     required this.weekXpDelta,
     required this.mastery,
     required this.weakTopic,
+    this.askEducation = false,
   });
 
   final String nickname;
@@ -31,6 +32,9 @@ class HomeView {
 
   /// null — ещё нет ответов, по которым её определить.
   final String? weakTopic;
+
+  /// Учебный профиль не заполнен и карточку не закрывали — предложить заполнить (можно пропустить).
+  final bool askEducation;
 }
 
 class HomeScreen extends StatelessWidget {
@@ -42,6 +46,8 @@ class HomeScreen extends StatelessWidget {
     this.onCase,
     this.onProgress,
     this.onCatalog,
+    this.onEducation,
+    this.onDismissEducation,
   });
 
   final HomeView view;
@@ -50,6 +56,8 @@ class HomeScreen extends StatelessWidget {
   final VoidCallback? onCase;
   final VoidCallback? onProgress;
   final VoidCallback? onCatalog;
+  final VoidCallback? onEducation;
+  final VoidCallback? onDismissEducation;
 
   @override
   Widget build(BuildContext context) {
@@ -159,6 +167,33 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
             const SizedBox(height: SrSpace.xl),
+            if (v.askEducation)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(SrSpace.xl, 0, SrSpace.xl, SrSpace.m),
+                child: Tile(
+                  onTap: onEducation,
+                  child: Row(
+                    children: [
+                      Icon(Icons.school_outlined, color: c.accent),
+                      const SizedBox(width: SrSpace.m),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Укажите вуз и курс', style: theme.titleMedium),
+                            Text('Откроется рейтинг среди однокурсников', style: theme.bodySmall),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: 'Не сейчас',
+                        onPressed: onDismissEducation,
+                        icon: Icon(Icons.close_rounded, color: c.textMuted),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: SrSpace.xl),
               child: Column(

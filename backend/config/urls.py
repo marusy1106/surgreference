@@ -17,6 +17,7 @@ api_v1 = [
     path("health", system_views.health, name="health"),
     path("app/config", system_views.app_config, name="app-config"),
     path("", include("apps.accounts.urls")),
+    path("", include("apps.universities.urls")),
     path("", include("apps.content.urls")),
     path("", include("apps.progress.urls")),
     path("", include("apps.assessment.urls")),

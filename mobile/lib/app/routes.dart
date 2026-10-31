@@ -17,6 +17,8 @@ abstract final class Routes {
   static const sessions = '/settings/sessions';
   static const password = '/settings/password';
   static const deleteAccount = '/settings/delete';
+  static const education = '/settings/education';
+  static const universitySearch = '/settings/education/university';
 
   static String discipline(String id) => '/catalog/$id';
   static String lesson(String id) => '/lesson/$id';
