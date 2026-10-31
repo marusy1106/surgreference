@@ -1,0 +1,44 @@
+[project]
+name = "surgreference-backend"
+version = "0.1.0"
+requires-python = ">=3.13"
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+extend-exclude = ["*/migrations/*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "DJ", "S", "BLE", "RUF"]
+ignore = ["RUF001", "RUF002", "RUF003", "RUF012", "DJ001", "DJ008"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S101", "S105", "S106"]
+"config/settings/*" = ["F405"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["test_*.py"]
+addopts = "-q --strict-markers"
+
+[tool.coverage.run]
+source = ["apps"]
+omit = ["*/migrations/*", "*/tests/*"]
+
+[tool.importlinter]
+root_package = "apps"
+
+[[tool.importlinter.contracts]]
+name = "Слои модулей: верхние зависят от нижних, не наоборот"
+type = "layers"
+layers = [
+    "apps.leaderboards",
+    "apps.gamification",
+    "apps.progress",
+    "apps.assessment | apps.cases",
+    "apps.content",
+    "apps.universities",
+    "apps.accounts",
+    "apps.billing | apps.analytics | apps.feedback | apps.audit",
+    "apps.core",
+]

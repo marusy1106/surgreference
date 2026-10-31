@@ -1,0 +1,14 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+backend/media/
+backend/staticfiles/
+.DS_Store
+# Flutter
+mobile/.dart_tool/
+mobile/build/
