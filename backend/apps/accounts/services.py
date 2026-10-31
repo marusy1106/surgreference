@@ -264,6 +264,16 @@ def _login_failed(user, key, request):
             emails.login_locked(user.email)
 
 
+def set_leaderboard_opt_in(user, opt_in: bool, *, request=None):
+    """Участие в рейтингах добровольное; выход мгновенно убирает пользователя из таблиц."""
+    if user.leaderboard_opt_in == opt_in:
+        return user
+    user.leaderboard_opt_in = opt_in
+    user.save(update_fields=["leaderboard_opt_in", "updated_at"])
+    record_security_event("account.leaderboard_opt_in", request=request, actor=user, opt_in=opt_in)
+    return user
+
+
 def logout(user, sid, *, request=None):
     _revoke(UserSession.objects.filter(user=user, pk=sid), "logout")
     record_security_event("auth.logout", request=request, actor=user)

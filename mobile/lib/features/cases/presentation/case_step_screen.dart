@@ -15,6 +15,7 @@ class CaseStepView {
     required this.choices,
     this.chosen,
     this.feedback,
+    this.chosenGood,
   });
 
   final String title;
@@ -32,11 +33,23 @@ class CaseStepView {
   final String prompt;
   final List<(String, bool)> choices;
   final int? chosen;
+
+  /// Выбор допустим (оптимальный или приемлемый). null — считать верным только оптимальный.
+  final bool? chosenGood;
   final String? feedback;
 }
 
 class CaseStepScreen extends StatelessWidget {
-  const CaseStepScreen({super.key, required this.view, this.onChoose, this.onNext, this.onClose});
+  const CaseStepScreen({
+    super.key,
+    required this.view,
+    this.onChoose,
+    this.onNext,
+    this.onClose,
+    this.nextLabel = 'Следующий шаг',
+  });
+
+  final String nextLabel;
 
   final CaseStepView view;
   final ValueChanged<int>? onChoose;
@@ -49,7 +62,7 @@ class CaseStepScreen extends StatelessWidget {
     final theme = Theme.of(context).textTheme;
     final v = view;
     final chosen = v.chosen;
-    final chosenCorrect = chosen != null && v.choices[chosen].$2;
+    final chosenCorrect = chosen != null && (v.chosenGood ?? v.choices[chosen].$2);
     return Scaffold(
       body: SafeArea(
         child: ListView(
@@ -117,8 +130,8 @@ class CaseStepScreen extends StatelessWidget {
                 state: chosen == null
                     ? AnswerState.idle
                     : i == chosen
-                    ? (correct ? AnswerState.correct : AnswerState.incorrect)
-                    : (correct ? AnswerState.missedCorrect : AnswerState.idle),
+                    ? (chosenCorrect ? AnswerState.correct : AnswerState.incorrect)
+                    : (correct && !chosenCorrect ? AnswerState.missedCorrect : AnswerState.idle),
                 onTap: chosen == null && onChoose != null ? () => onChoose!(i) : null,
               ),
               const SizedBox(height: SrSpace.s),
@@ -145,7 +158,7 @@ class CaseStepScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: SrSpace.l),
-              PillButton(label: 'Следующий шаг', onPressed: onNext),
+              PillButton(label: nextLabel, onPressed: onNext),
             ],
             const SizedBox(height: SrSpace.l),
             const Disclaimer(),

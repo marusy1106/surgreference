@@ -20,7 +20,7 @@ abstract final class Routes {
 
   static String discipline(String id) => '/catalog/$id';
   static String lesson(String id) => '/lesson/$id';
-  static String quiz(String topicId) => '/quiz/$topicId';
+  static String quiz(String quizId) => '/quiz/$quizId';
   static String clinicalCase(String id) => '/case/$id';
 
   /// Доступны без входа.

@@ -19,6 +19,9 @@ class ClinicalCase(ReviewedContent):
     discipline = models.ForeignKey("content.Discipline", on_delete=models.PROTECT, related_name="cases")
     title = models.CharField(max_length=255)
     summary = models.TextField(blank=True)
+    debrief = models.TextField(
+        "итоговый разбор", blank=True, help_text="Оптимальный путь, ключевые ошибки, что повторить"
+    )
     difficulty = models.PositiveSmallIntegerField(default=2)
     version = models.PositiveIntegerField(default=1)
     previous_version = models.ForeignKey(
@@ -62,6 +65,8 @@ class CaseStepKind(models.TextChoices):
 
 
 class CaseStep(models.Model):
+    """content — {"title", "situation", "prompt", "summary"}; summary — краткая запись шага для истории."""
+
     Kind = CaseStepKind
 
     case = models.ForeignKey(ClinicalCase, on_delete=models.CASCADE, related_name="steps")

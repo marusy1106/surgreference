@@ -21,7 +21,7 @@ class DisciplinePage extends ConsumerWidget {
         discipline: d,
         onBack: context.pop,
         onLesson: (lessonId) => context.push(Routes.lesson(lessonId)),
-        onQuiz: (topicId) => context.push(Routes.quiz(topicId)),
+        onQuiz: (quizId) => context.push(Routes.quiz(quizId)),
       ),
     );
   }

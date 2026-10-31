@@ -1,7 +1,7 @@
 # Чек-лист OWASP ASVS (backend и админка)
 
 Цель — ASVS Level 2 для API и админки (docs/04, 4.13). Статусы: ✅ сделано (в скобках — чем проверено), 🟡 частично, ⏳ этап, на котором появится, — не применимо.
-Обновляется в конце каждого этапа. Последнее обновление — этап 3.
+Обновляется в конце каждого этапа. Последнее обновление — этап 5 (API контента).
 
 ## V2. Аутентификация
 
@@ -37,7 +37,7 @@
 | Требование | Статус | Где / чем проверено |
 |---|---|---|
 | Закрыто по умолчанию: `IsAuthenticated` глобально, публичные эндпоинты — явный список | ✅ | `REST_FRAMEWORK`; `test_requests_without_token_rejected` |
-| Объектный доступ (IDOR): выборки фильтруются по `request.user` | 🟡 | сессии — ✅ (`test_cannot_revoke_foreign_session`); попытки и прогресс — ⏳ 5 |
+| Объектный доступ (IDOR): выборки фильтруются по `request.user` | ✅ | сессии (`test_cannot_revoke_foreign_session`), попытки тестов и кейсов — чужие отдают 404 (`test_foreign_attempt_is_not_found` в assessment и cases) |
 | Роли сотрудников с наименьшими привилегиями, аналитик без доступа к email | ✅ | `roles.py`; `test_roles_synced_with_least_privilege` |
 | Роли выдаёт только superadmin, изменение — в журнал и письмо остальным superadmin | ✅ | `UserAdmin`; `test_only_superadmin_changes_roles` |
 | Пользователей нельзя удалить из админки — только обезличить | ✅ | `test_users_cannot_be_deleted_only_anonymized` |
@@ -52,6 +52,9 @@
 | Ограничение размера тела запроса (1 МБ) | ✅ | `DATA_UPLOAD_MAX_MEMORY_SIZE` |
 | Только JSON на входе и выходе | ✅ | `DEFAULT_PARSER_CLASSES`, `DEFAULT_RENDERER_CLASSES` |
 | Блок-лист одноразовых почтовых доменов | ✅ | `disposable.py`; `test_register_validation` |
+| Правильные ответы и качество выборов в кейсе не уходят клиенту до ответа | ✅ | `test_start_hides_correct_answers`, `test_list_and_start_hide_choice_quality` |
+| Ответ принимается только для вопроса и вариантов своей попытки, выбор в кейсе — только на текущем шаге | ✅ | `test_answer_validation`, `test_choice_from_another_step_is_rejected` |
+| Антифрод XP: идемпотентные начисления, лимит 500 XP в сутки, повтор теста/кейса — только прирост, слишком быстрые ответы без XP, лимит стартов попыток | ✅ | `apps/gamification/tests`, `test_too_fast_answers_are_flagged_and_earn_no_xp` |
 
 ## V7. Журналирование
 

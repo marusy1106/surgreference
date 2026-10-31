@@ -32,6 +32,11 @@ class LeaderboardScreen extends StatelessWidget {
     this.period = 'Неделя',
     this.onMode,
     this.onScope,
+    this.onPeriod,
+    this.optedIn = true,
+    this.onOptIn,
+    this.note,
+    this.emptyMessage = 'Участников пока нет.',
   });
 
   final List<LeaderboardRowView> rows;
@@ -43,6 +48,15 @@ class LeaderboardScreen extends StatelessWidget {
   final String period;
   final ValueChanged<LeaderboardMode>? onMode;
   final ValueChanged<LeaderboardScope>? onScope;
+
+  /// Переключить период (неделя → месяц → всё время).
+  final VoidCallback? onPeriod;
+
+  /// Участие добровольное; пока его нет, вместо своего места — предложение участвовать.
+  final bool optedIn;
+  final ValueChanged<bool>? onOptIn;
+  final String? note;
+  final String emptyMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -81,16 +95,54 @@ class LeaderboardScreen extends StatelessWidget {
                           onSelected: (_) => onScope?.call(LeaderboardScope.all),
                         ),
                       ],
-                      ChipFilter(label: period, selected: false, onSelected: (_) {}),
+                      ChipFilter(label: '$period ↻', selected: false, onSelected: (_) => onPeriod?.call()),
                     ],
                   ),
                   const SizedBox(height: SrSpace.l),
+                  if (!optedIn && mode == LeaderboardMode.students) ...[
+                    Tile(
+                      padding: const EdgeInsets.all(SrSpace.l),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text('Вас нет в рейтинге', style: theme.titleMedium),
+                          const SizedBox(height: SrSpace.xs),
+                          Text(
+                            'Участие добровольное: другим будут видны только ваш никнейм, уровень и вуз. '
+                            'Выйти можно в любой момент.',
+                            style: theme.bodyMedium!.copyWith(color: c.textMuted),
+                          ),
+                          const SizedBox(height: SrSpace.m),
+                          PillButton(label: 'Участвовать в рейтинге', onPressed: () => onOptIn?.call(true)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: SrSpace.l),
+                  ],
+                  if (rows.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: SrSpace.l),
+                      child: Text(emptyMessage, style: theme.bodyMedium!.copyWith(color: c.textMuted)),
+                    ),
                   for (final row in rows) ...[_Row(row), const SizedBox(height: SrSpace.s)],
                   const SizedBox(height: SrSpace.s),
                   Text(
-                    'В рейтинге видны только никнеймы. Участие можно выключить в настройках.',
+                    note ?? 'В рейтинге видны только никнеймы. Участие можно выключить в любой момент.',
                     style: theme.bodySmall,
                   ),
+                  if (optedIn && onOptIn != null && mode == LeaderboardMode.students)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton(
+                        onPressed: () => onOptIn!(false),
+                        style: TextButton.styleFrom(
+                          foregroundColor: c.textMuted,
+                          minimumSize: const Size(0, kMinTapTarget),
+                          padding: EdgeInsets.zero,
+                        ),
+                        child: const Text('Выйти из рейтинга'),
+                      ),
+                    ),
                 ],
               ),
             ),

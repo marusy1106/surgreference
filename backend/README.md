@@ -25,6 +25,14 @@ cd backend && python3.13 -m venv .venv && .venv/bin/pip install -r requirements/
 .venv/bin/python manage.py runserver
 ```
 
+## Демо-контент
+
+```bash
+.venv/bin/python manage.py seed_demo_content   # дисциплины, тема «Острый аппендицит» (урок, тест), кейс
+```
+
+Только при `DEBUG=True` (для стенда беты — `--force`). Авторы контента — неактивные служебные пользователи.
+
 ## Доступ в админку
 
 Админка открывается только после второго фактора (TOTP), без него вход не пускает дальше формы.

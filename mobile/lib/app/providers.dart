@@ -10,7 +10,7 @@ import '../core/config.dart';
 import '../features/auth/data/auth_api.dart';
 import '../features/auth/application/auth_controller.dart';
 import '../features/auth/data/models.dart';
-import '../features/learning/data/demo_learning_repository.dart';
+import '../features/learning/data/api_learning_repository.dart';
 import '../features/learning/data/learning_repository.dart';
 
 /// Подменяется в тестах на [MemoryTokenStore].
@@ -31,8 +31,9 @@ final authApiProvider = Provider<AuthApi>(
   (ref) => AuthApi(ref.watch(apiClientProvider), ref.watch(deviceInfoProvider)),
 );
 
-/// Демо-реализация до появления API контента; подменяется одной строкой.
-final learningRepositoryProvider = Provider<LearningRepository>((ref) => DemoLearningRepository());
+final learningRepositoryProvider = Provider<LearningRepository>(
+  (ref) => ApiLearningRepository(ref.watch(apiClientProvider)),
+);
 
 /// Никнейм вошедшего пользователя — для приветствия, рейтинга и профиля.
 final nicknameProvider = Provider<String>((ref) {

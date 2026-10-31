@@ -1,0 +1,11 @@
+{
+ "choice_id": 7,
+ "quality": "optimal",
+ "is_good": true,
+ "feedback": "Диагноз подтверждён — показана операция. Лапароскопический доступ предпочтителен.",
+ "optimal_choice_id": 7,
+ "finished": true,
+ "next_step": null,
+ "score": 0.33,
+ "xp_awarded": 10
+}

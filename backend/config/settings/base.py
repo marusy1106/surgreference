@@ -129,6 +129,9 @@ OTP_TOTP_ISSUER = "SurgReference"
 # --- Локализация --------------------------------------------------------------
 LANGUAGE_CODE = "ru"
 TIME_ZONE = "UTC"
+# Граница учебного дня (серия, лимит XP, недели рейтинга). Часовой пояс устройства — после MVP.
+LEARNING_TIME_ZONE = env("LEARNING_TIME_ZONE", default="Europe/Moscow")
+XP_DAILY_CAP = env.int("XP_DAILY_CAP", default=500)
 USE_I18N = True
 USE_TZ = True
 
@@ -196,6 +199,7 @@ CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CELERY_TIMEZONE = "UTC"
 CELERY_BEAT_SCHEDULE = {
     "accounts-cleanup": {"task": "accounts.cleanup", "schedule": 3600},
+    "assessment-expire-attempts": {"task": "assessment.expire_attempts", "schedule": 3600},
 }
 
 # --- Почта ----------------------------------------------------------------------

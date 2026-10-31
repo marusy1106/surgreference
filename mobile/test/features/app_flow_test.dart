@@ -6,7 +6,6 @@ import 'package:surgreference/app/app.dart';
 import 'package:surgreference/app/providers.dart';
 import 'package:surgreference/core/api/api_client.dart';
 import 'package:surgreference/core/api/token_store.dart';
-import 'package:surgreference/features/learning/data/demo_learning_repository.dart';
 
 import '../fake_backend.dart';
 import '../helpers.dart';
@@ -44,6 +43,7 @@ void main() {
           body!['refresh'] == 'r1' ? FakeResponse(200, tokenPair('a2', 'r2')) : unauthorized,
       'GET me': (_, _) => FakeResponse(200, userJson()),
       'POST auth/logout': (_, _) => const FakeResponse(204),
+      ...learningRoutes(),
     });
   });
 
@@ -63,7 +63,6 @@ void main() {
           apiClientProvider.overrideWith(
             (ref) => ApiClient(baseUrl: 'http://test/api/v1/', store: ref.watch(tokenStoreProvider), adapter: backend),
           ),
-          learningRepositoryProvider.overrideWith((ref) => DemoLearningRepository(latency: Duration.zero)),
         ],
         child: const SurgReferenceApp(),
       ),
@@ -136,12 +135,12 @@ void main() {
     expect(find.text('Привет,'), findsOneWidget);
   });
 
-  testWidgets('quiz: answer all questions, get the review and XP on home', (tester) async {
+  testWidgets('quiz: answers go to the server one by one, then the review is shown', (tester) async {
     final semantics = tester.ensureSemantics();
     await store.writeRefresh('r1');
     await pumpApp(tester);
     await tapText(tester, 'Практика');
-    await tapText(tester, 'Тест по теме');
+    await tapText(tester, 'Повторить: Острый аппендицит');
 
     for (var i = 0; i < 5; i++) {
       expect(find.text('${i + 1}/5'), findsOneWidget);
@@ -150,34 +149,81 @@ void main() {
       await tapText(tester, 'Ответить');
     }
 
+    expect(backend.log.where((l) => l.startsWith('POST attempts/$quizAttempt/answers')), hasLength(5));
+    expect(backend.log.where((l) => l.contains('/finish')), hasLength(1));
     expect(find.text('Результат'), findsOneWidget);
-    // Первый вариант верен только в вопросах 1 и 2; разбор неверных раскрыт сразу.
-    expect(find.text('Ваш ответ — неверно'), findsWidgets);
     expect(find.bySemanticsLabel('Результат 2 из 5'), findsOneWidget);
-
-    await tapText(tester, 'На главную');
-    await tapText(tester, 'Главная');
-    expect(find.bySemanticsLabel('350 XP за неделю'), findsOneWidget, reason: '340 + 2 × 5 XP');
+    expect(find.text('Ваш ответ — неверно'), findsWidgets, reason: 'wrong answers are expanded');
+    await tester.scrollUntilVisible(find.text('Повторить урок'), 300, scrollable: find.byType(Scrollable).first);
+    expect(find.text('Повторить урок'), findsOneWidget);
     semantics.dispose();
   });
 
-  testWidgets('clinical case walks through every step to the summary', (tester) async {
+  testWidgets('clinical case: server feedback after each choice, then the summary', (tester) async {
     final semantics = tester.ensureSemantics();
     await store.writeRefresh('r1');
     await pumpApp(tester);
     await tapText(tester, 'Практика');
     await tapText(tester, 'Боль в правой подвздошной области');
 
-    for (var step = 0; step < 3; step++) {
-      await tester.tap(find.text('Б').first);
-      await tester.pumpAndSettle();
-      expect(find.text('Есть решение лучше'), findsOneWidget);
-      await tapText(tester, 'Следующий шаг');
-    }
+    await tester.tap(find.text('Б').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Есть решение лучше'), findsOneWidget);
+    expect(find.text('Правильный ответ'), findsOneWidget, reason: 'server named the optimal choice');
+    await tapText(tester, 'Следующий шаг');
+
+    await tester.tap(find.text('А').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Верное решение'), findsOneWidget);
+    await tapText(tester, 'Следующий шаг');
+
+    await tester.tap(find.text('А').first);
+    await tester.pumpAndSettle();
+    await tapText(tester, 'К итогам');
 
     expect(find.text('Итог кейса'), findsOneWidget);
-    expect(find.bySemanticsLabel('Верных решений 0 из 3'), findsOneWidget);
+    expect(find.bySemanticsLabel('Верных решений 2 из 3'), findsOneWidget);
     semantics.dispose();
+  });
+
+  testWidgets('catalog → discipline → lesson → complete', (tester) async {
+    await store.writeRefresh('r1');
+    await pumpApp(tester);
+    await tapText(tester, 'Каталог');
+    await tapText(tester, 'Хирургия');
+    expect(find.text('Острый холецистит'), findsOneWidget);
+    expect(find.text('Тест по теме'), findsOneWidget);
+
+    await tapText(tester, 'Острый аппендицит: клиническая картина и диагностика');
+    expect(find.text('Шкала Альварадо'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.textContaining('демо-рецензент'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.textContaining('демо-рецензент'), findsOneWidget);
+
+    await tapText(tester, 'Завершить урок');
+    expect(backend.log, contains('POST lessons/1/complete Bearer a2'));
+    expect(find.text('Урок пройден'), findsOneWidget);
+  });
+
+  testWidgets('leaderboard opt-in is sent to the server', (tester) async {
+    backend.routes['GET leaderboards/users'] = (_, _) => const FakeResponse(200, {
+      'rows': [],
+      'me': null,
+      'participants': 0,
+      'needs_university': false,
+      'opted_in': false,
+    });
+    await store.writeRefresh('r1');
+    await pumpApp(tester);
+    await tapText(tester, 'Рейтинг');
+    expect(find.text('Вас нет в рейтинге'), findsOneWidget);
+
+    await tapText(tester, 'Участвовать в рейтинге');
+
+    expect(backend.log, contains('PUT me/leaderboard-participation Bearer a2'));
   });
 
   testWidgets('logout from profile returns to the welcome screen', (tester) async {

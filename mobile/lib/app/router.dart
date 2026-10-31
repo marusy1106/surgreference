@@ -125,7 +125,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
       page('/lesson/:id', (s) => LessonPage(id: s.pathParameters['id']!)),
-      page('/quiz/:topicId', (s) => QuizFlowPage(topicId: s.pathParameters['topicId']!)),
+      page('/quiz/:quizId', (s) => QuizFlowPage(quizId: s.pathParameters['quizId']!)),
       page('/case/:id', (s) => CaseFlowPage(id: s.pathParameters['id']!)),
       page(Routes.progress, (_) => const ProgressPage()),
       page(Routes.sessions, (_) => const SessionsPage()),

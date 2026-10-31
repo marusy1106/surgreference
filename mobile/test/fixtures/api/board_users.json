@@ -1,0 +1,23 @@
+{
+ "rows": [
+  {
+   "rank": 1,
+   "display_name": "scalpel_anna",
+   "level": 1,
+   "university": null,
+   "xp": 49,
+   "is_me": true
+  }
+ ],
+ "me": {
+  "rank": 1,
+  "display_name": "scalpel_anna",
+  "level": 1,
+  "university": null,
+  "xp": 49,
+  "is_me": true
+ },
+ "participants": 1,
+ "needs_university": false,
+ "opted_in": true
+}

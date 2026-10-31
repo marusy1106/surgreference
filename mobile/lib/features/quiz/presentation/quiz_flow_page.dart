@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/providers.dart';
+import '../../../app/routes.dart';
 import '../../../core/api/api_error.dart';
 import '../../../core/ui/ui.dart';
 import '../../learning/data/learning_models.dart';
@@ -12,11 +13,12 @@ import '../../learning/learning_providers.dart';
 import 'quiz_result_screen.dart';
 import 'quiz_screen.dart';
 
-/// Прохождение теста: вопросы по одному с таймером → отправка ответов → результат с разбором.
+/// Прохождение теста: ответ на каждый вопрос уходит на сервер сразу, проверка — при завершении,
+/// затем разбор каждого варианта.
 class QuizFlowPage extends ConsumerStatefulWidget {
-  const QuizFlowPage({super.key, required this.topicId});
+  const QuizFlowPage({super.key, required this.quizId});
 
-  final String topicId;
+  final String quizId;
 
   @override
   ConsumerState<QuizFlowPage> createState() => _QuizFlowPageState();
@@ -28,12 +30,11 @@ class _QuizFlowPageState extends ConsumerState<QuizFlowPage> {
   Object? _error;
   var _index = 0;
   var _selected = <int>{};
-  final _answers = <String, Set<int>>{};
   final _expanded = <int>{};
   bool? _rated;
   Timer? _timer;
   var _left = Duration.zero;
-  var _submitting = false;
+  var _busy = false;
 
   @override
   void initState() {
@@ -51,9 +52,14 @@ class _QuizFlowPageState extends ConsumerState<QuizFlowPage> {
     setState(() {
       _error = null;
       _session = null;
+      _outcome = null;
+      _index = 0;
+      _selected = {};
+      _expanded.clear();
+      _rated = null;
     });
     try {
-      final session = await ref.read(learningRepositoryProvider).startQuiz(widget.topicId);
+      final session = await ref.read(learningRepositoryProvider).startQuiz(widget.quizId);
       if (!mounted) return;
       setState(() => _session = session);
       _startTimer();
@@ -67,7 +73,7 @@ class _QuizFlowPageState extends ConsumerState<QuizFlowPage> {
     _left = Duration(seconds: _session!.secondsPerQuestion);
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       setState(() => _left -= const Duration(seconds: 1));
-      // Время вышло — фиксируем то, что выбрано (или пропуск) и идём дальше.
+      // Время вышло: выбранное уходит как ответ, без выбора — вопрос пропущен.
       if (_left <= Duration.zero) _answer();
     });
   }
@@ -83,21 +89,30 @@ class _QuizFlowPageState extends ConsumerState<QuizFlowPage> {
     });
   }
 
+  void _message(String text) => ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(content: Text(text)));
+
   Future<void> _answer() async {
+    if (_busy) return;
     final session = _session!;
-    _answers[session.questions[_index].id] = _selected;
-    if (_index + 1 < session.questions.length) {
-      setState(() {
-        _index++;
-        _selected = {};
-      });
-      _startTimer();
-      return;
-    }
+    final question = session.questions[_index];
     _timer?.cancel();
-    setState(() => _submitting = true);
+    setState(() => _busy = true);
+    final repository = ref.read(learningRepositoryProvider);
     try {
-      final outcome = await ref.read(learningRepositoryProvider).submitQuiz(session.attemptId, _answers);
+      if (_selected.isNotEmpty) {
+        await repository.answer(session.attemptId, question.id, [for (final i in _selected) question.options[i].id]);
+      }
+      if (_index + 1 < session.questions.length) {
+        setState(() {
+          _index++;
+          _selected = {};
+        });
+        _startTimer();
+        return;
+      }
+      final outcome = await repository.finishQuiz(session.attemptId);
       invalidateStats(ref);
       if (!mounted) return;
       setState(() {
@@ -108,10 +123,14 @@ class _QuizFlowPageState extends ConsumerState<QuizFlowPage> {
             if (!item.isCorrect) i,
         ]);
       });
-    } catch (e) {
-      if (mounted) setState(() => _error = e);
+    } on ApiException catch (e) {
+      // Ответ не сохранился (нет сети) — остаёмся на вопросе, выбор не теряем.
+      if (mounted) {
+        _message(e.userMessage);
+        _startTimer();
+      }
     } finally {
-      if (mounted) setState(() => _submitting = false);
+      if (mounted) setState(() => _busy = false);
     }
   }
 
@@ -121,7 +140,7 @@ class _QuizFlowPageState extends ConsumerState<QuizFlowPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Прервать тест?'),
-        content: const Text('Ответы не сохранятся, XP не начислится.'),
+        content: const Text('Попытка не будет засчитана, XP не начислится.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Продолжить тест')),
           TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Прервать')),
@@ -141,18 +160,16 @@ class _QuizFlowPageState extends ConsumerState<QuizFlowPage> {
             child: EmptyState(
               icon: Icons.cloud_off_rounded,
               title: 'Тест не загрузился',
-              message: error is ApiException ? error.userMessage : 'Для этой темы теста пока нет.',
-              actionLabel: 'Назад',
-              onAction: context.pop,
+              message: error is ApiException ? error.userMessage : 'Попробуйте ещё раз.',
+              actionLabel: 'Повторить',
+              onAction: _start,
             ),
           ),
         ),
       );
     }
     final session = _session;
-    if (session == null || _submitting) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
+    if (session == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     final outcome = _outcome;
     if (outcome != null) return _result(outcome);
 
@@ -169,39 +186,50 @@ class _QuizFlowPageState extends ConsumerState<QuizFlowPage> {
           topic: session.topic,
           aura: session.aura,
           text: q.text,
-          options: q.options,
+          options: [for (final o in q.options) o.text],
           multiple: q.multiple,
           selected: _selected,
           timeLeft: _left.isNegative ? Duration.zero : _left,
           timeLimit: Duration(seconds: session.secondsPerQuestion),
         ),
-        onSelect: _select,
-        onAnswer: _answer,
+        onSelect: _busy ? null : _select,
+        onAnswer: _busy ? null : _answer,
         onClose: _close,
       ),
     );
   }
 
+  /// Разбор: общий комментарий и объяснение выбранных и правильных вариантов.
+  static String _explanation(QuizReviewItem item) {
+    final lines = [
+      if (item.explanation.isNotEmpty) item.explanation,
+      for (final o in item.options)
+        if ((o.selected || o.isCorrect) && o.explanation.isNotEmpty) '• ${o.text}: ${o.explanation}',
+    ];
+    return lines.join('\n');
+  }
+
   Widget _result(QuizOutcome outcome) {
+    final lessonId = outcome.lessonId;
     return QuizResultScreen(
       result: QuizResultView(
         topic: outcome.topic,
         aura: outcome.aura,
-        score: outcome.score,
+        score: outcome.correct,
         total: outcome.items.length,
         xpGained: outcome.xpGained,
         items: [
           for (final (i, item) in outcome.items.indexed)
             ResultItemView(
-              question: item.question.text,
+              question: item.text,
               correct: item.isCorrect,
-              explanation: _expanded.contains(i) ? item.explanation : null,
+              explanation: _expanded.contains(i) ? _explanation(item) : null,
               options: _expanded.contains(i)
                   ? [
-                      for (final (o, text) in item.question.options.indexed)
+                      for (final o in item.options)
                         (
-                          text,
-                          switch ((item.selected.contains(o), item.correct.contains(o))) {
+                          o.text,
+                          switch ((o.selected, o.isCorrect)) {
                             (true, true) => AnswerState.correct,
                             (true, false) => AnswerState.incorrect,
                             (false, true) => AnswerState.missedCorrect,
@@ -217,16 +245,8 @@ class _QuizFlowPageState extends ConsumerState<QuizFlowPage> {
       onItemTap: (i) => setState(() => _expanded.contains(i) ? _expanded.remove(i) : _expanded.add(i)),
       onRate: (useful) => setState(() => _rated = useful),
       onClose: context.pop,
-      onMistakes: () {
-        setState(() {
-          _outcome = null;
-          _index = 0;
-          _answers.clear();
-          _expanded.clear();
-          _rated = null;
-        });
-        _start();
-      },
+      onMistakes: _start,
+      onLesson: lessonId == null ? null : () => context.pushReplacement(Routes.lesson(lessonId)),
     );
   }
 }

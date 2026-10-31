@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../app/async_view.dart';
+import '../../../app/providers.dart';
+import '../../../core/api/api_error.dart';
 import '../../../core/ui/ui.dart';
 import '../../learning/data/learning_models.dart';
 import '../../learning/learning_providers.dart';
 import 'case_step_screen.dart';
 
-/// Пошаговый кейс: решение на каждом шаге → обратная связь → итог «ваш путь и оптимальный».
+/// Пошаговый кейс. Качество выбора и обратную связь сообщает сервер только после выбора;
+/// в конце — разбор «ваш путь и оптимальный».
 class CaseFlowPage extends ConsumerStatefulWidget {
   const CaseFlowPage({super.key, required this.id});
 
@@ -19,49 +21,138 @@ class CaseFlowPage extends ConsumerStatefulWidget {
 }
 
 class _CaseFlowPageState extends ConsumerState<CaseFlowPage> {
-  var _step = 0;
+  CaseSession? _session;
+  CaseStep? _step;
+  CaseOutcome? _outcome;
+  CaseReview? _review;
   int? _chosen;
-  final _path = <int>[];
+  final _history = <(String, String)>[];
+  Object? _error;
+  var _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _start();
+  }
+
+  Future<void> _start() async {
+    setState(() {
+      _error = null;
+      _session = null;
+      _review = null;
+      _outcome = null;
+      _chosen = null;
+      _history.clear();
+    });
+    try {
+      final session = await ref.read(learningRepositoryProvider).startCase(widget.id);
+      if (mounted) {
+        setState(() {
+          _session = session;
+          _step = session.step;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _error = e);
+    }
+  }
+
+  Future<void> _choose(int index) async {
+    if (_busy || _outcome != null) return;
+    setState(() {
+      _busy = true;
+      _chosen = index;
+    });
+    try {
+      final outcome = await ref
+          .read(learningRepositoryProvider)
+          .chooseInCase(_session!.attemptId, _step!.choices[index].id);
+      if (mounted) setState(() => _outcome = outcome);
+    } on ApiException catch (e) {
+      if (mounted) {
+        setState(() => _chosen = null);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.userMessage)));
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _next() async {
+    final outcome = _outcome!;
+    final step = _step!;
+    if (!outcome.finished) {
+      setState(() {
+        _history.add((step.title, step.summary));
+        _step = outcome.nextStep;
+        _outcome = null;
+        _chosen = null;
+      });
+      return;
+    }
+    setState(() => _busy = true);
+    try {
+      final review = await ref.read(learningRepositoryProvider).caseReview(_session!.attemptId);
+      invalidateStats(ref);
+      if (mounted) setState(() => _review = review);
+    } on ApiException catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.userMessage)));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return AsyncView(
-      value: ref.watch(caseProvider(widget.id)),
-      onRetry: () => ref.invalidate(caseProvider(widget.id)),
-      data: (c) => _step >= c.steps.length ? _summary(c) : _stepScreen(c),
-    );
-  }
-
-  Widget _stepScreen(ClinicalCase c) {
-    final step = c.steps[_step];
-    final chosen = _chosen;
+    final error = _error;
+    if (error != null) {
+      return Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: EmptyState(
+              icon: Icons.cloud_off_rounded,
+              title: 'Кейс не загрузился',
+              message: error is ApiException ? error.userMessage : 'Попробуйте ещё раз.',
+              actionLabel: 'Повторить',
+              onAction: _start,
+            ),
+          ),
+        ),
+      );
+    }
+    final review = _review;
+    if (review != null) return _summary(review);
+    final session = _session;
+    final step = _step;
+    if (session == null || step == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    final outcome = _outcome;
     return CaseStepScreen(
       view: CaseStepView(
-        title: c.summary.title,
-        aura: c.summary.aura,
-        steps: [for (final s in c.steps) s.title, 'Итог'],
-        current: _step,
-        history: [for (final s in c.steps.take(_step)) (s.title, s.summary)],
+        title: session.summary.title,
+        aura: session.summary.aura,
+        steps: [...session.stepTitles, 'Итог'],
+        current: step.number - 1,
+        history: _history,
         situation: step.situation,
         prompt: step.prompt,
-        choices: [for (final choice in step.choices) (choice.text, choice.correct)],
-        chosen: chosen,
-        feedback: chosen == null ? null : step.choices[chosen].feedback,
+        // До выбора качество вариантов неизвестно; после — сервер назвал лучший.
+        choices: [for (final c in step.choices) (c.text, outcome != null && c.id == outcome.optimalChoiceId)],
+        chosen: outcome == null ? null : _chosen,
+        feedback: outcome?.feedback,
+        chosenGood: outcome?.isGood,
       ),
-      onChoose: (i) => setState(() => _chosen = i),
-      onNext: () => setState(() {
-        _path.add(_chosen!);
-        _chosen = null;
-        _step++;
-      }),
+      onChoose: _choose,
+      onNext: _busy ? null : _next,
+      nextLabel: outcome?.finished == true ? 'К итогам' : 'Следующий шаг',
       onClose: context.pop,
     );
   }
 
-  Widget _summary(ClinicalCase c) {
+  Widget _summary(CaseReview r) {
     final colors = SrColors.of(context);
     final theme = Theme.of(context).textTheme;
-    final right = [for (final (i, s) in c.steps.indexed) s.choices[_path[i]].correct].where((ok) => ok).length;
+    final right = r.steps.where((s) => s.chosenGood).length;
     return Scaffold(
       body: SafeArea(
         child: ListView(
@@ -75,26 +166,29 @@ class _CaseFlowPageState extends ConsumerState<CaseFlowPage> {
             ),
             const SizedBox(height: SrSpace.l),
             AuraCard(
-              aura: c.summary.aura,
+              aura: r.summary.aura,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(c.summary.title, style: theme.labelLarge!.copyWith(color: AuraInk.inkMuted)),
+                  Text(r.summary.title, style: theme.labelLarge!.copyWith(color: AuraInk.inkMuted)),
                   const SizedBox(height: SrSpace.m),
                   DotNumber(
-                    '$right/${c.steps.length}',
+                    '$right/${r.steps.length}',
                     dotSize: 8,
-                    semanticLabel: 'Верных решений $right из ${c.steps.length}',
+                    semanticLabel: 'Верных решений $right из ${r.steps.length}',
                   ),
                   const SizedBox(height: SrSpace.s),
-                  Text('верных решений', style: theme.labelLarge!.copyWith(color: AuraInk.ink)),
+                  Text(
+                    'верных решений · ${(r.score * 100).round()} % баллов · +${r.xpGained} XP',
+                    style: theme.labelLarge!.copyWith(color: AuraInk.ink),
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: SrSpace.xl),
             const SectionHeader('Ваш путь'),
             const SizedBox(height: SrSpace.s),
-            for (final (i, step) in c.steps.indexed) ...[
+            for (final (i, step) in r.steps.indexed) ...[
               Tile(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,37 +197,30 @@ class _CaseFlowPageState extends ConsumerState<CaseFlowPage> {
                     const SizedBox(height: SrSpace.s),
                     AnswerOption(
                       letter: '${i + 1}',
-                      text: step.choices[_path[i]].text,
-                      state: step.choices[_path[i]].correct ? AnswerState.correct : AnswerState.incorrect,
+                      text: step.chosen,
+                      state: step.chosenGood ? AnswerState.correct : AnswerState.incorrect,
                     ),
-                    if (!step.choices[_path[i]].correct) ...[
+                    if (!step.chosenGood) ...[
                       const SizedBox(height: SrSpace.s),
-                      AnswerOption(
-                        letter: '${i + 1}',
-                        text: step.choices.firstWhere((ch) => ch.correct).text,
-                        state: AnswerState.missedCorrect,
-                      ),
+                      AnswerOption(letter: '${i + 1}', text: step.optimal, state: AnswerState.missedCorrect),
                     ],
+                    const SizedBox(height: SrSpace.s),
+                    Text(step.feedback, style: theme.bodyMedium),
                   ],
                 ),
               ),
               const SizedBox(height: SrSpace.s),
             ],
-            const SizedBox(height: SrSpace.l),
-            const SectionHeader('Разбор'),
-            const SizedBox(height: SrSpace.s),
-            Text(c.takeaway, style: theme.bodyLarge),
+            if (r.debrief.isNotEmpty) ...[
+              const SizedBox(height: SrSpace.l),
+              const SectionHeader('Разбор'),
+              const SizedBox(height: SrSpace.s),
+              Text(r.debrief, style: theme.bodyLarge),
+            ],
             const SizedBox(height: SrSpace.xl),
-            PillButton(
-              label: 'Пройти заново',
-              onPressed: () => setState(() {
-                _step = 0;
-                _chosen = null;
-                _path.clear();
-              }),
-            ),
+            PillButton(label: 'Пройти заново', onPressed: _start),
             const SizedBox(height: SrSpace.l),
-            const Disclaimer(),
+            const Disclaimer(text: 'Учебный кейс. Пациент вымышлен. Не является руководством к лечению.'),
           ],
         ),
       ),

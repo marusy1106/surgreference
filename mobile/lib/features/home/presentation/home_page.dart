@@ -16,13 +16,17 @@ class HomePage extends ConsumerWidget {
       value: ref.watch(homeProvider),
       onRetry: () => ref.invalidate(homeProvider),
       data: (view) => RefreshIndicator(
-        onRefresh: () => ref.refresh(homeProvider.future),
+        onRefresh: () {
+          invalidateStats(ref);
+          return ref.refresh(homeProvider.future);
+        },
         child: HomeScreen(
           view: view,
-          onContinue: () => context.push(Routes.lesson(view.continueLesson.id)),
-          onLastQuiz: () => context.push(Routes.quiz(view.lastQuiz.topicId)),
-          onCase: () => context.push(Routes.clinicalCase(view.caseOfDay.id)),
+          onContinue: () => context.push(Routes.lesson(view.continueLesson!.id)),
+          onLastQuiz: () => context.push(Routes.quiz(view.lastQuiz!.topicId)),
+          onCase: () => context.push(Routes.clinicalCase(view.caseOfDay!.id)),
           onProgress: () => context.push(Routes.progress),
+          onCatalog: () => context.go(Routes.catalog),
         ),
       ),
     );

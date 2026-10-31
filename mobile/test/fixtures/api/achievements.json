@@ -1,0 +1,79 @@
+[
+ {
+  "code": "first_lesson",
+  "title": "Первый урок",
+  "description": "Пройдите первый урок",
+  "icon": "menu_book",
+  "earned_at": "2026-10-31T14:24:35.151097Z"
+ },
+ {
+  "code": "first_quiz",
+  "title": "Первый тест",
+  "description": "Завершите первый тест",
+  "icon": "flag",
+  "earned_at": "2026-10-31T14:24:35.245014Z"
+ },
+ {
+  "code": "first_case",
+  "title": "Первый кейс",
+  "description": "Пройдите первый клинический кейс",
+  "icon": "medical_services",
+  "earned_at": "2026-10-31T14:24:35.347234Z"
+ },
+ {
+  "code": "perfect_quiz",
+  "title": "Без ошибок",
+  "description": "Ответьте верно на все вопросы теста",
+  "icon": "verified",
+  "earned_at": null
+ },
+ {
+  "code": "lessons_10",
+  "title": "10 уроков",
+  "description": "Пройдите 10 уроков",
+  "icon": "auto_stories",
+  "earned_at": null
+ },
+ {
+  "code": "quizzes_10",
+  "title": "10 тестов",
+  "description": "Завершите 10 тестов",
+  "icon": "emoji_events",
+  "earned_at": null
+ },
+ {
+  "code": "quizzes_50",
+  "title": "50 тестов",
+  "description": "Завершите 50 тестов",
+  "icon": "emoji_events",
+  "earned_at": null
+ },
+ {
+  "code": "quizzes_100",
+  "title": "100 тестов",
+  "description": "Завершите 100 тестов",
+  "icon": "emoji_events",
+  "earned_at": null
+ },
+ {
+  "code": "streak_3",
+  "title": "3 дня подряд",
+  "description": "Учитесь три дня подряд",
+  "icon": "local_fire_department",
+  "earned_at": null
+ },
+ {
+  "code": "streak_7",
+  "title": "7 дней подряд",
+  "description": "Учитесь неделю без пропусков",
+  "icon": "local_fire_department",
+  "earned_at": null
+ },
+ {
+  "code": "streak_30",
+  "title": "30 дней подряд",
+  "description": "Учитесь месяц без пропусков",
+  "icon": "whatshot",
+  "earned_at": null
+ }
+]

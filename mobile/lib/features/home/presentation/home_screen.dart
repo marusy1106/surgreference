@@ -17,25 +17,39 @@ class HomeView {
   });
 
   final String nickname;
-  final ({String id, String discipline, String title, double progress, Aura aura}) continueLesson;
-  final ({String topicId, String topic, int score, int total, Aura aura}) lastQuiz;
-  final ({String id, String title, String discipline, Aura aura}) caseOfDay;
+
+  /// null-поля — карточки нет (новый пользователь, всё пройдено, контента ещё нет).
+  /// progress — доля прочитанного; null — урок ещё не начат.
+  final ({String id, String discipline, String title, double? progress, Aura aura})? continueLesson;
+  final ({String topicId, String topic, int score, int total, Aura aura})? lastQuiz;
+  final ({String id, String title, String discipline, Aura aura})? caseOfDay;
   final int streakDays;
   final int streakGoal;
   final int weekXp;
   final int weekXpDelta;
   final double mastery;
-  final String weakTopic;
+
+  /// null — ещё нет ответов, по которым её определить.
+  final String? weakTopic;
 }
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key, required this.view, this.onContinue, this.onLastQuiz, this.onCase, this.onProgress});
+  const HomeScreen({
+    super.key,
+    required this.view,
+    this.onContinue,
+    this.onLastQuiz,
+    this.onCase,
+    this.onProgress,
+    this.onCatalog,
+  });
 
   final HomeView view;
   final VoidCallback? onContinue;
   final VoidCallback? onLastQuiz;
   final VoidCallback? onCase;
   final VoidCallback? onProgress;
+  final VoidCallback? onCatalog;
 
   @override
   Widget build(BuildContext context) {
@@ -67,58 +81,83 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: SrSpace.xl),
-            SizedBox(
-              height: 150 + 70 * scale,
-              child: PageView(
-                controller: PageController(viewportFraction: 0.86),
-                padEnds: false,
-                // Иначе свечение карточек обрезается прямоугольником.
-                clipBehavior: Clip.none,
-                children: [
-                  _CarouselCard(
-                    aura: v.continueLesson.aura,
-                    label: 'Продолжить урок · ${v.continueLesson.discipline}',
-                    onTap: onContinue,
-                    title: v.continueLesson.title,
-                    footer: RulerScale(
-                      value: v.continueLesson.progress,
-                      ticks: 31,
-                      color: AuraInk.ink,
-                      semanticLabel: 'Прочитано ${(v.continueLesson.progress * 100).round()} %',
-                      endLabel: '${(v.continueLesson.progress * 100).round()} %',
-                    ),
+            if (v.continueLesson == null && v.lastQuiz == null && v.caseOfDay == null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: SrSpace.xl),
+                child: Tile(
+                  onTap: onCatalog,
+                  child: Row(
+                    children: [
+                      Expanded(child: Text('Выберите тему в каталоге, чтобы начать', style: theme.titleMedium)),
+                      Icon(Icons.chevron_right_rounded, color: c.textMuted),
+                    ],
                   ),
-                  _CarouselCard(
-                    aura: v.lastQuiz.aura,
-                    label: 'Последний тест · ${v.lastQuiz.topic}',
-                    onTap: onLastQuiz,
-                    footer: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Expanded(
-                          child: Align(
-                            alignment: Alignment.bottomLeft,
-                            child: DotNumber(
-                              '${v.lastQuiz.score}/${v.lastQuiz.total}',
-                              dotSize: 7,
-                              semanticLabel: 'Результат ${v.lastQuiz.score} из ${v.lastQuiz.total}',
-                            ),
+                ),
+              )
+            else
+              SizedBox(
+                height: 150 + 70 * scale,
+                child: PageView(
+                  controller: PageController(viewportFraction: 0.86),
+                  padEnds: false,
+                  // Иначе свечение карточек обрезается прямоугольником.
+                  clipBehavior: Clip.none,
+                  children: [
+                    if (v.continueLesson case final lesson?)
+                      _CarouselCard(
+                        aura: lesson.aura,
+                        label: 'Продолжить урок · ${lesson.discipline}',
+                        onTap: onContinue,
+                        title: lesson.title,
+                        footer: switch (lesson.progress) {
+                          final progress? => RulerScale(
+                            value: progress,
+                            ticks: 31,
+                            color: AuraInk.ink,
+                            semanticLabel: 'Прочитано ${(progress * 100).round()} %',
+                            endLabel: '${(progress * 100).round()} %',
                           ),
+                          null => const Row(
+                            children: [
+                              Expanded(child: Text('Открыть урок')),
+                              Icon(Icons.arrow_outward_rounded),
+                            ],
+                          ),
+                        },
+                      ),
+                    if (v.lastQuiz case final quiz?)
+                      _CarouselCard(
+                        aura: quiz.aura,
+                        label: 'Последний тест · ${quiz.topic}',
+                        onTap: onLastQuiz,
+                        footer: Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Expanded(
+                              child: Align(
+                                alignment: Alignment.bottomLeft,
+                                child: DotNumber(
+                                  '${quiz.score}/${quiz.total}',
+                                  dotSize: 7,
+                                  semanticLabel: 'Результат ${quiz.score} из ${quiz.total}',
+                                ),
+                              ),
+                            ),
+                            const Icon(Icons.arrow_outward_rounded),
+                          ],
                         ),
-                        const Icon(Icons.arrow_outward_rounded),
-                      ],
-                    ),
-                  ),
-                  _CarouselCard(
-                    aura: v.caseOfDay.aura,
-                    label: 'Кейс дня · ${v.caseOfDay.discipline}',
-                    onTap: onCase,
-                    title: v.caseOfDay.title,
-                    footer: const Text('Синтетический учебный кейс'),
-                  ),
-                ],
+                      ),
+                    if (v.caseOfDay case final clinicalCase?)
+                      _CarouselCard(
+                        aura: clinicalCase.aura,
+                        label: 'Кейс дня · ${clinicalCase.discipline}',
+                        onTap: onCase,
+                        title: clinicalCase.title,
+                        footer: const Text('Синтетический учебный кейс'),
+                      ),
+                  ],
+                ),
               ),
-            ),
             const SizedBox(height: SrSpace.xl),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: SrSpace.xl),
@@ -166,8 +205,10 @@ class HomeScreen extends StatelessWidget {
                                 const Spacer(),
                                 const SizedBox(height: SrSpace.m),
                                 Text(
-                                  '+${v.weekXpDelta} к прошлой',
-                                  style: theme.labelMedium!.copyWith(color: c.success),
+                                  v.weekXpDelta >= 0 ? '+${v.weekXpDelta} к прошлой' : '−${-v.weekXpDelta} к прошлой',
+                                  style: theme.labelMedium!.copyWith(
+                                    color: v.weekXpDelta > 0 ? c.success : c.textMuted,
+                                  ),
                                 ),
                               ],
                             ),
@@ -192,9 +233,9 @@ class HomeScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const TileLabel('Слабая тема'),
+                              TileLabel(v.weakTopic == null ? 'Освоение' : 'Слабая тема'),
                               const SizedBox(height: SrSpace.xs),
-                              Text(v.weakTopic, style: theme.titleMedium),
+                              Text(v.weakTopic ?? 'Пройдите тест — покажем, что повторить', style: theme.titleMedium),
                             ],
                           ),
                         ),

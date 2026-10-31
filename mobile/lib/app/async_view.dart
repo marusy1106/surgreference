@@ -34,30 +34,3 @@ class AsyncView<T> extends StatelessWidget {
     );
   }
 }
-
-/// Пометка демо-данных на экранах, пока контент не приходит с сервера.
-class DemoBadge extends StatelessWidget {
-  const DemoBadge({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final c = SrColors.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: SrSpace.m, vertical: SrSpace.xs + 2),
-      decoration: ShapeDecoration(color: c.surface2, shape: const StadiumBorder()),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.science_outlined, size: 16, color: c.textMuted),
-          const SizedBox(width: SrSpace.xs),
-          Flexible(
-            child: Text(
-              'Демо-контент: учебные разделы ещё не подключены к серверу',
-              style: Theme.of(context).textTheme.labelMedium!.copyWith(color: c.textMuted),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

@@ -65,7 +65,7 @@ class DisciplineScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Semantics(header: true, child: Text(topic.title, style: theme.titleMedium)),
-                    if (topic.lessons.isEmpty && topic.quizQuestions == 0) ...[
+                    if (topic.lessons.isEmpty && topic.quizId == null) ...[
                       const SizedBox(height: SrSpace.xs),
                       Text('Материалы готовятся', style: theme.bodySmall),
                     ],
@@ -77,14 +77,14 @@ class DisciplineScreen extends StatelessWidget {
                         subtitle: lesson.completed ? 'Пройден · ${lesson.minutes} мин' : 'Урок · ${lesson.minutes} мин',
                         onTap: () => onLesson(lesson.id),
                       ),
-                    if (topic.quizQuestions > 0)
+                    if (topic.quizId case final quizId?)
                       _Row(
                         icon: Icons.quiz_outlined,
                         iconColor: c.accent,
                         title: 'Тест по теме',
                         subtitle:
                             '${topic.quizQuestions} ${plural(topic.quizQuestions, 'вопрос', 'вопроса', 'вопросов')} с разбором',
-                        onTap: () => onQuiz(topic.id),
+                        onTap: () => onQuiz(quizId),
                       ),
                   ],
                 ),

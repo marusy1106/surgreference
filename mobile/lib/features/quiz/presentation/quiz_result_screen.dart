@@ -41,7 +41,11 @@ class QuizResultScreen extends StatelessWidget {
     this.onRate,
     this.onItemTap,
     this.rated,
+    this.onLesson,
   });
+
+  /// Повторить урок темы — ссылка из разбора.
+  final VoidCallback? onLesson;
 
   final QuizResultView result;
 
@@ -125,6 +129,15 @@ class QuizResultScreen extends StatelessWidget {
             ),
             const SizedBox(height: SrSpace.xl),
             PillButton(label: 'Пройти ещё раз', onPressed: onMistakes),
+            if (onLesson != null) ...[
+              const SizedBox(height: SrSpace.s),
+              PillButton(
+                label: 'Повторить урок',
+                variant: PillButtonVariant.secondary,
+                showArrow: false,
+                onPressed: onLesson,
+              ),
+            ],
             const SizedBox(height: SrSpace.s),
             PillButton(label: 'На главную', variant: PillButtonVariant.secondary, showArrow: false, onPressed: onClose),
             const SizedBox(height: SrSpace.s),

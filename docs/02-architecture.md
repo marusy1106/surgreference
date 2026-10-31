@@ -123,7 +123,7 @@ GET    /me/education                  PUT  /me/education             GET  /me/ed
 GET    /universities?search=          GET  /universities/{id}/faculties   GET /specialties
 POST   /universities/requests
 
-GET    /disciplines                   GET  /disciplines/{slug}       GET  /topics/{id}
+GET    /disciplines                   GET  /disciplines/{slug}  (темы, уроки, тест темы, освоение — модуль progress)
 GET    /lessons/{id}                  POST /lessons/{id}/complete
 GET    /icd10?search=                 GET  /icd10/{code}
 GET    /guidelines?search=            GET  /guidelines/{id}
@@ -134,10 +134,10 @@ POST   /attempts/{id}/answers         POST /attempts/{id}/finish     GET  /attem
 GET    /cases                         POST /cases/{id}/attempts      POST /case-attempts/{id}/choices
 GET    /case-attempts/{id}/review
 
-GET    /me/progress                   GET  /me/progress/disciplines/{id}   GET /me/activity?period=week
-GET    /me/achievements               GET  /me/xp-history
+GET    /me/progress                   GET  /me/activity?period=week|month|year
+GET    /me/achievements
 
-GET    /leaderboards/users?scope=global|university&period=week
+GET    /leaderboards/users?scope=global|university&period=week|month|all_time
 GET    /leaderboards/universities?period=month
 PUT    /me/leaderboard-participation
 
@@ -176,8 +176,9 @@ GET    /app/config
 | Магазины | App Store (StoreKit 2 — позже), RuStore (Pay SDK — позже); без зависимости от Google Play Services |
 
 Отличия реализации от плана (упрощения до появления нужды): Riverpod без кодогенерации, модели и клиент API
-написаны вручную (эндпоинтов пока мало), drift-кеш появится вместе с офлайн-кешем каталога. Учебные экраны
-работают через интерфейс `LearningRepository` — сейчас на демо-данных, затем поверх API этапа 5.
+написаны вручную, drift-кеш появится вместе с офлайн-кешем каталога. Учебные экраны работают через интерфейс
+`LearningRepository` (реализация — `ApiLearningRepository`); его тесты идут на ответах, записанных с dev-сервера
+(`mobile/test/fixtures/api`).
 
 Структура — по фичам:
 

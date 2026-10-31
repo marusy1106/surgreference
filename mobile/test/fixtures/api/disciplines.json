@@ -1,0 +1,50 @@
+[
+ {
+  "slug": "surgery",
+  "title": "Хирургия",
+  "palette_token": "surgery",
+  "is_premium": false,
+  "topics_count": 3,
+  "mastery": 0.0
+ },
+ {
+  "slug": "therapy",
+  "title": "Терапия",
+  "palette_token": "therapy",
+  "is_premium": false,
+  "topics_count": 0,
+  "mastery": 0.0
+ },
+ {
+  "slug": "cardiology",
+  "title": "Кардиология",
+  "palette_token": "cardiology",
+  "is_premium": false,
+  "topics_count": 0,
+  "mastery": 0.0
+ },
+ {
+  "slug": "neurology",
+  "title": "Неврология",
+  "palette_token": "neurology",
+  "is_premium": false,
+  "topics_count": 0,
+  "mastery": 0.0
+ },
+ {
+  "slug": "pediatrics",
+  "title": "Педиатрия",
+  "palette_token": "pediatrics",
+  "is_premium": false,
+  "topics_count": 0,
+  "mastery": 0.0
+ },
+ {
+  "slug": "pharmacology",
+  "title": "Фармакология",
+  "palette_token": "pharmacology",
+  "is_premium": false,
+  "topics_count": 0,
+  "mastery": 0.0
+ }
+]

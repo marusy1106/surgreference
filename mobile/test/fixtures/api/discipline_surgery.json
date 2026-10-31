@@ -1,0 +1,44 @@
+{
+ "slug": "surgery",
+ "title": "Хирургия",
+ "palette_token": "surgery",
+ "topics": [
+  {
+   "id": 1,
+   "title": "Острый аппендицит",
+   "is_premium": false,
+   "mastery": 0.0,
+   "mastered": false,
+   "lessons": [
+    {
+     "id": 1,
+     "title": "Острый аппендицит: клиническая картина и диагностика",
+     "minutes": 7,
+     "completed": false
+    }
+   ],
+   "quiz": {
+    "id": 1,
+    "questions": 5
+   }
+  },
+  {
+   "id": 2,
+   "title": "Острый холецистит",
+   "is_premium": false,
+   "mastery": 0.0,
+   "mastered": false,
+   "lessons": [],
+   "quiz": null
+  },
+  {
+   "id": 3,
+   "title": "Ущемлённая грыжа",
+   "is_premium": false,
+   "mastery": 0.0,
+   "mastered": false,
+   "lessons": [],
+   "quiz": null
+  }
+ ]
+}

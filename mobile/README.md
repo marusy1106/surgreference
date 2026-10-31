@@ -4,9 +4,9 @@ Flutter 3.41, iOS 15+ / Android 8+. Riverpod, go_router, dio, flutter_secure_sto
 
 - **Авторизация и аккаунт работают с API**: регистрация с согласиями, код из письма, вход, восстановление
   пароля, автоматическое обновление токенов, сессии и устройства, смена пароля, выгрузка данных, удаление аккаунта.
-- **Учебные разделы** (каталог, урок, тест с разбором, кейс, прогресс, рейтинг) работают через
-  `LearningRepository` на демо-данных — экраны помечены «Демо-контент». Когда на бэкенде появятся эндпоинты
-  контента (этап 5), достаточно реализации поверх API и замены `learningRepositoryProvider`.
+- **Учебные разделы тоже работают с API**: каталог с освоением, урок, тест (ответы уходят на сервер по одному,
+  проверка и разбор — с сервера), клинический кейс по шагам, прогресс и активность, достижения, рейтинг с
+  добровольным участием. Контент для локальной проверки — `manage.py seed_demo_content` в `backend/`.
 
 ```
 lib/
@@ -14,9 +14,9 @@ lib/
 ├── core/api/         # ApiClient (токены, одиночный refresh при 401), ApiException, хранилище refresh-токена
 ├── core/ui/          # UI-кит: AuraCard, DotNumber, PillButton, AnswerOption… (ui.dart — всё разом)
 ├── features/auth/    # AuthApi, AuthController (состояния входа), экраны входа и регистрации
-├── features/learning/# LearningRepository и демо-реализация
+├── features/learning/# LearningRepository, ApiLearningRepository, провайдеры экранов
 ├── features/*/presentation/  # *_screen.dart — вёрстка на готовых данных, *_page.dart — связь с состоянием
-└── design_preview/   # демо-данные (вымышленные) для макетов, витрины и демо-репозитория
+└── design_preview/   # демо-данные (вымышленные) для эталонных скриншотов и витрины
 widgetbook/           # витрина UI-кита
 test/                 # контраст, доступность, эталонные скриншоты (goldens/)
 ```
@@ -40,7 +40,7 @@ Refresh-токен — в Keychain/Keystore, access-токен — только 
 ```bash
 dart format --output=none --set-exit-if-changed lib test widgetbook/lib
 flutter analyze
-flutter test --exclude-tags golden    # API-клиент, роутер, сквозные сценарии, контраст, шрифт 200 %, тач-цели
+flutter test --exclude-tags golden    # API-клиент, разбор ответов API, сквозные сценарии, контраст, шрифт 200 %
 flutter test --tags golden            # эталонные скриншоты, только на macOS
 ```
 
@@ -60,3 +60,6 @@ flutter test --tags golden --update-goldens
 - Состояние не передаётся одним цветом: у верного/неверного ответа есть иконка и подпись.
 - У иконок-кнопок обязателен `semanticLabel`, у чисел точечным шрифтом — тоже.
 - Никаких сторонних шрифтовых CDN и SDK: шрифт лежит в `assets/fonts` (лицензия OFL рядом).
+
+Тестовые ответы API в `test/fixtures/api` записаны с dev-сервера. Изменился формат ответа на бэкенде — перезапишите
+их тем же сценарием и прогоните тесты.

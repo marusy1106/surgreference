@@ -3,19 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/async_view.dart';
-import '../../../app/providers.dart';
 import '../../../app/routes.dart';
 import '../../../core/ui/ui.dart';
 import '../../learning/learning_providers.dart';
 
-/// Вкладка «Практика»: тесты по темам и клинические кейсы.
+/// Вкладка «Практика»: повтор последнего теста, тесты по темам из каталога и клинические кейсы.
 class PracticePage extends ConsumerWidget {
   const PracticePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context).textTheme;
-    final isDemo = ref.watch(learningRepositoryProvider).isDemo;
+    final lastQuiz = ref.watch(overviewProvider).value?.lastQuiz;
     return AsyncView(
       value: ref.watch(casesProvider),
       onRetry: () => ref.invalidate(casesProvider),
@@ -26,29 +25,28 @@ class PracticePage extends ConsumerWidget {
             padding: const EdgeInsets.all(SrSpace.xl),
             children: [
               Text('Практика', style: theme.headlineMedium),
-              if (isDemo) ...[
-                const SizedBox(height: SrSpace.m),
-                const Align(alignment: Alignment.centerLeft, child: DemoBadge()),
-              ],
               const SizedBox(height: SrSpace.xl),
               const SectionHeader('Тесты'),
               const SizedBox(height: SrSpace.s),
-              _ModeTile(
-                icon: Icons.quiz_outlined,
-                title: 'Тест по теме',
-                subtitle: 'Острый аппендицит · 5 вопросов с разбором',
-                onTap: () => context.push(Routes.quiz('appendicitis')),
-              ),
-              const SizedBox(height: SrSpace.s),
+              if (lastQuiz != null) ...[
+                _ModeTile(
+                  icon: Icons.replay_rounded,
+                  title: 'Повторить: ${lastQuiz.topic}',
+                  subtitle: 'Прошлый результат ${lastQuiz.correct} из ${lastQuiz.total}',
+                  onTap: () => context.push(Routes.quiz(lastQuiz.quizId)),
+                ),
+                const SizedBox(height: SrSpace.s),
+              ],
               _ModeTile(
                 icon: Icons.menu_book_outlined,
-                title: 'Выбрать тему в каталоге',
-                subtitle: 'Тест есть в конце каждой темы',
+                title: 'Тест по теме',
+                subtitle: 'Выберите тему в каталоге — тест в конце каждой темы',
                 onTap: () => context.go(Routes.catalog),
               ),
               const SizedBox(height: SrSpace.xl),
               const SectionHeader('Клинические кейсы'),
               const SizedBox(height: SrSpace.s),
+              if (cases.isEmpty) Text('Кейсы появятся после проверки рецензентом.', style: theme.bodyMedium),
               for (final c in cases) ...[
                 AuraCard(
                   aura: c.aura,
@@ -62,6 +60,10 @@ class PracticePage extends ConsumerWidget {
                       ),
                       const SizedBox(height: SrSpace.s),
                       Text(c.title, style: theme.titleLarge!.copyWith(color: AuraInk.ink)),
+                      if (c.summary.isNotEmpty) ...[
+                        const SizedBox(height: SrSpace.xs),
+                        Text(c.summary, style: theme.bodyMedium!.copyWith(color: AuraInk.ink)),
+                      ],
                     ],
                   ),
                 ),

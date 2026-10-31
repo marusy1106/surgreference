@@ -1,0 +1,188 @@
+{
+ "attempt_id": "e6640cc2-b66d-4403-9223-fab7f993a25c",
+ "correct": 2,
+ "total": 5,
+ "score": 0.4,
+ "xp_awarded": 4,
+ "quiz": {
+  "id": 1,
+  "title": "Острый аппендицит",
+  "topic": "Острый аппендицит",
+  "discipline_slug": "surgery",
+  "palette_token": "surgery"
+ },
+ "lesson_id": 1,
+ "items": [
+  {
+   "question_id": 1,
+   "kind": "single",
+   "text": "Как называется смещение боли из эпигастрия в правую подвздошную область?",
+   "is_correct": true,
+   "explanation": "Миграцию боли из эпигастрия в правую подвздошную область называют симптомом Кохера.",
+   "options": [
+    {
+     "id": 3,
+     "text": "Симптом Щёткина — Блюмберга",
+     "is_correct": false,
+     "selected": false,
+     "explanation": "Это усиление боли при резком отнятии руки — признак раздражения брюшины."
+    },
+    {
+     "id": 4,
+     "text": "Симптом Ортнера",
+     "is_correct": false,
+     "selected": false,
+     "explanation": "Ортнер — болезненность при поколачивании по правой рёберной дуге, признак холецистита."
+    },
+    {
+     "id": 1,
+     "text": "Симптом Кохера",
+     "is_correct": true,
+     "selected": true,
+     "explanation": "Кохер (Кохер — Волкович) — миграция боли в первые часы заболевания."
+    },
+    {
+     "id": 2,
+     "text": "Симптом Ровзинга",
+     "is_correct": false,
+     "selected": false,
+     "explanation": "Ровзинг — боль справа при толчкообразном давлении в левой подвздошной области."
+    }
+   ]
+  },
+  {
+   "question_id": 2,
+   "kind": "single",
+   "text": "Что такое симптом Ровзинга?",
+   "is_correct": true,
+   "explanation": "Ровзинг — боль в правой подвздошной области при толчкообразном давлении слева.",
+   "options": [
+    {
+     "id": 5,
+     "text": "Боль справа при толчкообразном давлении в левой подвздошной области",
+     "is_correct": true,
+     "selected": true,
+     "explanation": "Это и есть симптом Ровзинга."
+    },
+    {
+     "id": 8,
+     "text": "Боль при поднятии выпрямленной правой ноги",
+     "is_correct": false,
+     "selected": false,
+     "explanation": "Это симптом Образцова."
+    },
+    {
+     "id": 7,
+     "text": "Усиление боли в положении на левом боку",
+     "is_correct": false,
+     "selected": false,
+     "explanation": "Это симптом Ситковского."
+    },
+    {
+     "id": 6,
+     "text": "Усиление боли при резком отнятии руки от брюшной стенки",
+     "is_correct": false,
+     "selected": false,
+     "explanation": "Это симптом Щёткина — Блюмберга."
+    }
+   ]
+  },
+  {
+   "question_id": 3,
+   "kind": "single",
+   "text": "Какой метод визуализации выбирают первым при подозрении на аппендицит у беременной?",
+   "is_correct": false,
+   "explanation": "Если УЗИ не дало ответа, следующим выполняют МРТ без контрастирования.",
+   "options": [
+    {
+     "id": 10,
+     "text": "УЗИ брюшной полости",
+     "is_correct": true,
+     "selected": false,
+     "explanation": "Метод первой линии: нет лучевой нагрузки на плод."
+    },
+    {
+     "id": 9,
+     "text": "КТ брюшной полости с контрастированием",
+     "is_correct": false,
+     "selected": true,
+     "explanation": "КТ у беременных применяют ограниченно из-за лучевой нагрузки."
+    },
+    {
+     "id": 11,
+     "text": "Обзорная рентгенография",
+     "is_correct": false,
+     "selected": false,
+     "explanation": "Малоинформативна для диагностики аппендицита и даёт лучевую нагрузку."
+    }
+   ]
+  },
+  {
+   "question_id": 4,
+   "kind": "single",
+   "text": "Сколько баллов шкалы Альварадо даёт лейкоцитоз?",
+   "is_correct": false,
+   "explanation": "Максимум по шкале — 10 баллов.",
+   "options": [
+    {
+     "id": 12,
+     "text": "1",
+     "is_correct": false,
+     "selected": true,
+     "explanation": "По 1 баллу дают шесть других признаков."
+    },
+    {
+     "id": 13,
+     "text": "2",
+     "is_correct": true,
+     "selected": false,
+     "explanation": "Лейкоцитоз и болезненность в правой подвздошной области — по 2 балла."
+    },
+    {
+     "id": 14,
+     "text": "3",
+     "is_correct": false,
+     "selected": false,
+     "explanation": "Признаков с весом 3 в шкале нет."
+    }
+   ]
+  },
+  {
+   "question_id": 5,
+   "kind": "multiple",
+   "text": "Какие признаки входят в шкалу Альварадо?",
+   "is_correct": false,
+   "explanation": "В шкалу входят восемь признаков: симптомы, данные осмотра и анализ крови.",
+   "options": [
+    {
+     "id": 18,
+     "text": "Лейкоцитоз",
+     "is_correct": true,
+     "selected": false,
+     "explanation": "Входит, 2 балла."
+    },
+    {
+     "id": 15,
+     "text": "Миграция боли в правую подвздошную область",
+     "is_correct": true,
+     "selected": false,
+     "explanation": "Входит, 1 балл."
+    },
+    {
+     "id": 17,
+     "text": "Тошнота или рвота",
+     "is_correct": true,
+     "selected": false,
+     "explanation": "Входит, 1 балл."
+    },
+    {
+     "id": 16,
+     "text": "Брадикардия",
+     "is_correct": false,
+     "selected": true,
+     "explanation": "Частота пульса в шкалу не входит."
+    }
+   ]
+  }
+ ]
+}

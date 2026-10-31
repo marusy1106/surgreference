@@ -1,0 +1,77 @@
+{
+ "level": 1,
+ "total_xp": 49,
+ "level_xp": 0,
+ "next_level_xp": 100,
+ "current_streak": 1,
+ "longest_streak": 1,
+ "week_xp": 49,
+ "previous_week_xp": 0,
+ "lessons_completed": 1,
+ "quizzes_finished": 1,
+ "cases_finished": 1,
+ "disciplines": [
+  {
+   "slug": "surgery",
+   "title": "Хирургия",
+   "palette_token": "surgery",
+   "is_premium": false,
+   "topics_count": 3,
+   "mastery": 0.4
+  },
+  {
+   "slug": "therapy",
+   "title": "Терапия",
+   "palette_token": "therapy",
+   "is_premium": false,
+   "topics_count": 0,
+   "mastery": 0.0
+  },
+  {
+   "slug": "cardiology",
+   "title": "Кардиология",
+   "palette_token": "cardiology",
+   "is_premium": false,
+   "topics_count": 0,
+   "mastery": 0.0
+  },
+  {
+   "slug": "neurology",
+   "title": "Неврология",
+   "palette_token": "neurology",
+   "is_premium": false,
+   "topics_count": 0,
+   "mastery": 0.0
+  },
+  {
+   "slug": "pediatrics",
+   "title": "Педиатрия",
+   "palette_token": "pediatrics",
+   "is_premium": false,
+   "topics_count": 0,
+   "mastery": 0.0
+  },
+  {
+   "slug": "pharmacology",
+   "title": "Фармакология",
+   "palette_token": "pharmacology",
+   "is_premium": false,
+   "topics_count": 0,
+   "mastery": 0.0
+  }
+ ],
+ "continue_lesson": null,
+ "weak_topic": {
+  "id": 1,
+  "title": "Острый аппендицит",
+  "mastery": 0.4,
+  "discipline_slug": "surgery"
+ },
+ "last_quiz": {
+  "quiz_id": 1,
+  "topic": "Острый аппендицит",
+  "correct": 2,
+  "total": 5,
+  "palette_token": "surgery"
+ }
+}

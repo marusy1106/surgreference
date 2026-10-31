@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -71,3 +72,37 @@ Map<String, dynamic> tokenPair(String access, String refresh, {bool verified = t
 const unauthorized = FakeResponse(401, {
   'error': {'code': 'token_invalid', 'message': 'Токен недействителен или истёк'},
 });
+
+/// Настоящий ответ API, записанный с dev-сервера (test/fixtures/api).
+Object fixture(String name) => jsonDecode(File('test/fixtures/api/$name.json').readAsStringSync()) as Object;
+
+const quizAttempt = 'e6640cc2-b66d-4403-9223-fab7f993a25c';
+const caseAttempt = '90bc3c45-fd6e-4d06-84e2-6653efb69444';
+
+/// Учебные эндпоинты на записанных ответах. Выборы в кейсе отдаются по очереди, как шли при записи.
+Map<String, Handler> learningRoutes({bool newUser = false}) {
+  var caseChoice = 0;
+  return {
+    'GET me/progress': (_, _) => FakeResponse(200, fixture(newUser ? 'me_progress_new' : 'me_progress')),
+    'GET cases': (_, _) => FakeResponse(200, fixture('cases')),
+    'GET disciplines': (_, _) => FakeResponse(200, fixture('disciplines')),
+    'GET disciplines/surgery': (_, _) => FakeResponse(200, fixture('discipline_surgery')),
+    'GET lessons/1': (_, _) => FakeResponse(200, fixture('lesson')),
+    'POST lessons/1/complete': (_, _) => const FakeResponse(200, {'completed': true, 'first_time': true}),
+    'POST quizzes/1/attempts': (_, _) => FakeResponse(201, fixture('quiz_start')),
+    'POST attempts/$quizAttempt/answers': (_, _) => const FakeResponse(204),
+    'POST attempts/$quizAttempt/finish': (_, _) => FakeResponse(200, fixture('quiz_finish')),
+    'GET attempts/$quizAttempt/review': (_, _) => FakeResponse(200, fixture('quiz_review')),
+    'POST cases/1/attempts': (_, _) {
+      caseChoice = 0;
+      return FakeResponse(201, fixture('case_start'));
+    },
+    'POST case-attempts/$caseAttempt/choices': (_, _) => FakeResponse(200, fixture('case_choice_${caseChoice++}')),
+    'GET case-attempts/$caseAttempt/review': (_, _) => FakeResponse(200, fixture('case_review')),
+    'GET me/activity': (_, _) => FakeResponse(200, fixture('activity_week')),
+    'GET me/achievements': (_, _) => FakeResponse(200, fixture('achievements')),
+    'GET leaderboards/users': (_, _) => FakeResponse(200, fixture('board_users')),
+    'GET leaderboards/universities': (_, _) => FakeResponse(200, fixture('board_universities')),
+    'PUT me/leaderboard-participation': (_, body) => FakeResponse(200, body),
+  };
+}
