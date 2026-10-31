@@ -19,6 +19,7 @@ import '../features/onboarding/presentation/onboarding_screen.dart';
 import '../features/practice/presentation/practice_page.dart';
 import '../features/profile/presentation/profile_page.dart';
 import '../features/progress/presentation/progress_page.dart';
+import '../features/learning/data/learning_models.dart';
 import '../features/quiz/presentation/quiz_flow_page.dart';
 import '../features/settings/presentation/change_password_page.dart';
 import '../features/settings/presentation/delete_account_page.dart';
@@ -125,7 +126,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
       page('/lesson/:id', (s) => LessonPage(id: s.pathParameters['id']!)),
-      page('/quiz/:quizId', (s) => QuizFlowPage(quizId: s.pathParameters['quizId']!)),
+      page('/quiz/:quizId', (s) => QuizFlowPage(id: s.pathParameters['quizId']!)),
+      page('/training/:slug', (s) => QuizFlowPage(mode: QuizMode.training, id: s.pathParameters['slug']!)),
+      page('/mistakes/:slug', (s) => QuizFlowPage(mode: QuizMode.mistakes, id: s.pathParameters['slug']!)),
       page('/case/:id', (s) => CaseFlowPage(id: s.pathParameters['id']!)),
       page(Routes.progress, (_) => const ProgressPage()),
       page(Routes.sessions, (_) => const SessionsPage()),

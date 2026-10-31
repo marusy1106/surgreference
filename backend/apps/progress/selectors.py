@@ -7,6 +7,9 @@ from .models import LessonProgress, TopicMastery
 MASTERED_AT = 0.8
 MASTERED_MIN_ANSWERS = 10
 
+# Работа над ошибками открывается после 5 ошибок в дисциплине (docs/05-learning.md, 5.3).
+MISTAKES_MIN = 5
+
 
 def topic_mastery(user, topic_ids):
     return {m.topic_id: m for m in TopicMastery.objects.filter(user=user, topic_id__in=topic_ids)}
@@ -112,3 +115,23 @@ def last_unfinished_lesson(user):
 
 def lessons_completed_count(user) -> int:
     return LessonProgress.objects.filter(user=user).count()
+
+
+def practice_overview(user):
+    """Вкладка «Практика»: дисциплины, где есть вопросы, — с числом вопросов и ошибок."""
+    disciplines = list(content.published_disciplines().order_by("sort_order"))
+    ids = [d.pk for d in disciplines]
+    questions = assessment.discipline_question_counts(ids)
+    mistakes = assessment.mistakes(user, ids)
+    return [
+        {
+            "slug": d.slug,
+            "title": d.title,
+            "palette_token": d.palette_token,
+            "questions": questions[d.pk],
+            "mistakes": len(mistakes.get(d.pk, [])),
+            "mistakes_available": len(mistakes.get(d.pk, [])) >= MISTAKES_MIN,
+        }
+        for d in disciplines
+        if questions.get(d.pk)
+    ]

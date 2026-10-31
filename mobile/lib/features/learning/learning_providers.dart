@@ -21,6 +21,10 @@ final casesProvider = FutureProvider.autoDispose<List<CaseSummary>>(
 /// Цель серии на главной: ближайший рубеж достижений (3, 7, 30 дней).
 int streakGoal(int days) => days < 3 ? 3 : (days < 7 ? 7 : 30);
 
+final practiceProvider = FutureProvider.autoDispose<List<PracticeDiscipline>>(
+  (ref) => ref.watch(learningRepositoryProvider).practice(),
+);
+
 final homeProvider = FutureProvider.autoDispose<HomeView>((ref) async {
   final overview = await ref.watch(overviewProvider.future);
   final cases = await ref.watch(casesProvider.future);
@@ -116,6 +120,7 @@ const achievementIcons = <String, IconData>{
   'emoji_events': Icons.emoji_events_rounded,
   'local_fire_department': Icons.local_fire_department_rounded,
   'whatshot': Icons.whatshot_rounded,
+  'healing': Icons.healing_rounded,
 };
 
 final profileProvider = FutureProvider.autoDispose<ProfileView>((ref) async {
@@ -141,5 +146,6 @@ void invalidateStats(WidgetRef ref) {
     ..invalidate(overviewProvider)
     ..invalidate(leaderboardProvider)
     ..invalidate(disciplineProvider)
-    ..invalidate(disciplinesProvider);
+    ..invalidate(disciplinesProvider)
+    ..invalidate(practiceProvider);
 }

@@ -42,5 +42,6 @@ class AttemptReviewView(APIView):
     def get(self, request, attempt_id):
         """Разбор: выбранные и правильные варианты с объяснением каждого. Только после завершения."""
         attempt = selectors.user_attempt(request.user, attempt_id, status=QuizAttemptStatus.FINISHED)
-        lesson = content.published_lessons(topic_id=attempt.quiz.topic_id).first() if attempt.quiz.topic_id else None
+        topic_id = attempt.quiz.topic_id if attempt.quiz else None
+        lesson = content.published_lessons(topic_id=topic_id).first() if topic_id else None
         return Response(review_payload(attempt, selectors.attempt_answers(attempt), lesson.pk if lesson else None))

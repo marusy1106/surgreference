@@ -78,6 +78,8 @@ Object fixture(String name) => jsonDecode(File('test/fixtures/api/$name.json').r
 
 const quizAttempt = 'e6640cc2-b66d-4403-9223-fab7f993a25c';
 const caseAttempt = '90bc3c45-fd6e-4d06-84e2-6653efb69444';
+const trainingAttempt = '8aab5ffe-fea0-4fea-bb6a-1e42de94228e';
+const mistakesAttempt = '773cddbc-f4d9-4d90-aa68-7c7d28193d3a';
 
 /// Учебные эндпоинты на записанных ответах. Выборы в кейсе отдаются по очереди, как шли при записи.
 Map<String, Handler> learningRoutes({bool newUser = false}) {
@@ -93,6 +95,13 @@ Map<String, Handler> learningRoutes({bool newUser = false}) {
     'POST attempts/$quizAttempt/answers': (_, _) => const FakeResponse(204),
     'POST attempts/$quizAttempt/finish': (_, _) => FakeResponse(200, fixture('quiz_finish')),
     'GET attempts/$quizAttempt/review': (_, _) => FakeResponse(200, fixture('quiz_review')),
+    'GET practice': (_, _) => FakeResponse(200, fixture(newUser ? 'practice_new' : 'practice')),
+    'POST disciplines/surgery/training': (_, _) => FakeResponse(201, fixture('training_start')),
+    'POST disciplines/surgery/mistakes': (_, _) => FakeResponse(201, fixture('mistakes_start')),
+    'POST attempts/$trainingAttempt/answers': (_, _) => const FakeResponse(204),
+    'POST attempts/$mistakesAttempt/answers': (_, _) => const FakeResponse(204),
+    'POST attempts/$mistakesAttempt/finish': (_, _) => const FakeResponse(200, {}),
+    'GET attempts/$mistakesAttempt/review': (_, _) => FakeResponse(200, fixture('mistakes_review')),
     'POST cases/1/attempts': (_, _) {
       caseChoice = 0;
       return FakeResponse(201, fixture('case_start'));

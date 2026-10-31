@@ -21,6 +21,8 @@ abstract final class Routes {
   static String discipline(String id) => '/catalog/$id';
   static String lesson(String id) => '/lesson/$id';
   static String quiz(String quizId) => '/quiz/$quizId';
+  static String training(String slug) => '/training/$slug';
+  static String mistakes(String slug) => '/mistakes/$slug';
   static String clinicalCase(String id) => '/case/$id';
 
   /// Доступны без входа.

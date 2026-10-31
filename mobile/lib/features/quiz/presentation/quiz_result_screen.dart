@@ -42,7 +42,11 @@ class QuizResultScreen extends StatelessWidget {
     this.onItemTap,
     this.rated,
     this.onLesson,
+    this.againLabel = 'Пройти ещё раз',
   });
+
+  /// Подпись основной кнопки: у тренировки — «ещё вопросы», после работы над ошибками — тренировка.
+  final String againLabel;
 
   /// Повторить урок темы — ссылка из разбора.
   final VoidCallback? onLesson;
@@ -128,7 +132,7 @@ class QuizResultScreen extends StatelessWidget {
                     ),
             ),
             const SizedBox(height: SrSpace.xl),
-            PillButton(label: 'Пройти ещё раз', onPressed: onMistakes),
+            PillButton(label: againLabel, onPressed: onMistakes),
             if (onLesson != null) ...[
               const SizedBox(height: SrSpace.s),
               PillButton(

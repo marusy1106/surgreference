@@ -7,6 +7,7 @@ from django.db.models import F, Sum
 
 from apps.assessment import selectors as assessment
 from apps.assessment import services as assessment_services
+from apps.assessment.models import QuizAttemptMode
 from apps.cases import selectors as cases
 from apps.cases import services as cases_services
 from apps.universities.models import EducationProfile
@@ -135,11 +136,18 @@ def on_quiz_attempt_finished(sender, attempt, **kwargs):
     user = attempt.user
     stats_for(user)
     _increment(user, "quizzes_finished")
+    if attempt.mode == QuizAttemptMode.MISTAKES:
+        _increment(user, "mistakes_finished")
+    topic_quiz = attempt.mode == QuizAttemptMode.TOPIC
     awarded = 0
     if not attempt.flagged:
-        best = assessment.best_previous_correct(attempt)
-        # Первая попытка — за каждый верный; повтор — только за верные сверх лучшего прошлого результата.
-        new_correct = attempt.correct_count if best is None else max(0, attempt.correct_count - best)
+        if topic_quiz:
+            best = assessment.best_previous_correct(attempt)
+            # Первая попытка — за каждый верный; повтор — только за верные сверх лучшего прошлого результата.
+            new_correct = attempt.correct_count if best is None else max(0, attempt.correct_count - best)
+        else:
+            # Тренировка бесконечна: XP только за вопросы, на которые пользователь впервые ответил верно.
+            new_correct = assessment.first_time_correct(attempt)
         awarded += award_xp(
             user,
             QUIZ_CORRECT_XP * new_correct,
@@ -148,7 +156,7 @@ def on_quiz_attempt_finished(sender, attempt, **kwargs):
             source_id=attempt.pk,
             key=f"quiz:{attempt.pk}",
         )
-        if attempt.score is not None and attempt.score >= QUIZ_BONUS_AT:
+        if topic_quiz and attempt.score is not None and attempt.score >= QUIZ_BONUS_AT:
             awarded += award_xp(
                 user,
                 QUIZ_BONUS_XP,
@@ -159,7 +167,8 @@ def on_quiz_attempt_finished(sender, attempt, **kwargs):
             )
     assessment_services.set_xp_awarded(attempt, awarded)
     record_activity(user)
-    check_achievements(user, perfect_quiz=attempt.total_count > 0 and attempt.correct_count == attempt.total_count)
+    perfect = topic_quiz and attempt.total_count > 0 and attempt.correct_count == attempt.total_count
+    check_achievements(user, perfect_quiz=perfect)
 
 
 @transaction.atomic

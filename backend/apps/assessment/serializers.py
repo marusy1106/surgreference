@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from .models import QuizAttemptMode
 from .selectors import stem_text
 
 DEFAULT_SECONDS_PER_QUESTION = 90
@@ -16,11 +17,15 @@ def _options_in_attempt_order(row):
 
 
 def _quiz_header(attempt):
+    """У тренировки и работы над ошибками теста нет — заголовок собирается из режима и дисциплины."""
     quiz = attempt.quiz
     return {
-        "id": quiz.pk,
-        "title": quiz.title,
-        "topic": quiz.topic.title if quiz.topic_id else "",
+        "id": quiz.pk if quiz else None,
+        "mode": attempt.mode,
+        "title": quiz.title
+        if quiz
+        else f"{QuizAttemptMode(attempt.mode).label.capitalize()} · {attempt.discipline.title}",
+        "topic": quiz.topic.title if quiz and quiz.topic_id else "",
         "discipline_slug": attempt.discipline.slug,
         "palette_token": attempt.discipline.palette_token,
     }
@@ -28,7 +33,7 @@ def _quiz_header(attempt):
 
 def attempt_payload(attempt, rows):
     """Вопросы попытки без признаков правильности."""
-    limit = attempt.quiz.time_limit_sec
+    limit = attempt.quiz.time_limit_sec if attempt.quiz else None
     return {
         "attempt_id": str(attempt.pk),
         "quiz": _quiz_header(attempt),

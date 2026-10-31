@@ -1,0 +1,10 @@
+[
+ {
+  "slug": "surgery",
+  "title": "Хирургия",
+  "palette_token": "surgery",
+  "questions": 5,
+  "mistakes": 0,
+  "mistakes_available": false
+ }
+]

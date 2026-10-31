@@ -159,6 +159,45 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('mistakes: session from the practice tab, then training of the same discipline', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await store.writeRefresh('r1');
+    await pumpApp(tester);
+    await tapText(tester, 'Практика');
+    await tapText(tester, '5 ошибок — верный ответ уберёт вопрос из списка');
+
+    expect(backend.log, contains(startsWith('POST disciplines/surgery/mistakes')));
+    for (var i = 0; i < 5; i++) {
+      await tester.tap(find.text('А').first);
+      await tester.pump();
+      await tapText(tester, 'Ответить');
+    }
+
+    expect(find.bySemanticsLabel('Результат 5 из 5'), findsOneWidget);
+    expect(find.text('Повторить урок'), findsNothing, reason: 'questions come from several topics');
+    await tester.scrollUntilVisible(
+      find.text('Тренировка по дисциплине'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tapText(tester, 'Тренировка по дисциплине');
+
+    expect(backend.log.last, startsWith('POST disciplines/surgery/training'));
+    expect(find.text('Тренировка · Хирургия'), findsWidgets);
+    semantics.dispose();
+  });
+
+  testWidgets('new user: mistakes are explained, not offered', (tester) async {
+    backend.routes.addAll(learningRoutes(newUser: true));
+    await store.writeRefresh('r1');
+    await pumpApp(tester);
+    await tapText(tester, 'Практика');
+
+    expect(find.textContaining('откроется после 5 ошибок'), findsOneWidget);
+    expect(find.text('10 случайных вопросов, чаще — из слабых тем'), findsNothing);
+    expect(find.text('5 вопросов в случайном порядке'), findsOneWidget);
+  });
+
   testWidgets('clinical case: server feedback after each choice, then the summary', (tester) async {
     final semantics = tester.ensureSemantics();
     await store.writeRefresh('r1');

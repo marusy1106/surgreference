@@ -14,11 +14,14 @@ import 'quiz_result_screen.dart';
 import 'quiz_screen.dart';
 
 /// Прохождение теста: ответ на каждый вопрос уходит на сервер сразу, проверка — при завершении,
-/// затем разбор каждого варианта.
+/// затем разбор каждого варианта. Тот же поток — у тренировки и работы над ошибками.
 class QuizFlowPage extends ConsumerStatefulWidget {
-  const QuizFlowPage({super.key, required this.quizId});
+  const QuizFlowPage({super.key, this.mode = QuizMode.topic, required this.id});
 
-  final String quizId;
+  final QuizMode mode;
+
+  /// Тест темы — id теста; тренировка и работа над ошибками — slug дисциплины.
+  final String id;
 
   @override
   ConsumerState<QuizFlowPage> createState() => _QuizFlowPageState();
@@ -59,7 +62,12 @@ class _QuizFlowPageState extends ConsumerState<QuizFlowPage> {
       _rated = null;
     });
     try {
-      final session = await ref.read(learningRepositoryProvider).startQuiz(widget.quizId);
+      final repository = ref.read(learningRepositoryProvider);
+      final session = await switch (widget.mode) {
+        QuizMode.topic => repository.startQuiz(widget.id),
+        QuizMode.training => repository.startTraining(widget.id),
+        QuizMode.mistakes => repository.startMistakes(widget.id),
+      };
       if (!mounted) return;
       setState(() => _session = session);
       _startTimer();
@@ -245,7 +253,13 @@ class _QuizFlowPageState extends ConsumerState<QuizFlowPage> {
       onItemTap: (i) => setState(() => _expanded.contains(i) ? _expanded.remove(i) : _expanded.add(i)),
       onRate: (useful) => setState(() => _rated = useful),
       onClose: context.pop,
-      onMistakes: _start,
+      // После работы над ошибками оставшихся может быть меньше пяти — дальше тренировка по той же дисциплине.
+      againLabel: switch (widget.mode) {
+        QuizMode.topic => 'Пройти ещё раз',
+        QuizMode.training => 'Ещё 10 вопросов',
+        QuizMode.mistakes => 'Тренировка по дисциплине',
+      },
+      onMistakes: widget.mode == QuizMode.mistakes ? () => context.pushReplacement(Routes.training(widget.id)) : _start,
       onLesson: lessonId == null ? null : () => context.pushReplacement(Routes.lesson(lessonId)),
     );
   }

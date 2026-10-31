@@ -57,6 +57,18 @@ class ApiLearningRepository implements LearningRepository {
       _post('quizzes/$quizId/attempts', (j) => QuizSession.fromJson(_map(j)));
 
   @override
+  Future<List<PracticeDiscipline>> practice() =>
+      _get('practice', (j) => [for (final d in _list(j)) PracticeDiscipline.fromJson(d)]);
+
+  @override
+  Future<QuizSession> startTraining(String slug) =>
+      _post('disciplines/$slug/training', (j) => QuizSession.fromJson(_map(j)));
+
+  @override
+  Future<QuizSession> startMistakes(String slug) =>
+      _post('disciplines/$slug/mistakes', (j) => QuizSession.fromJson(_map(j)));
+
+  @override
   Future<void> answer(String attemptId, String questionId, List<String> optionIds) => _post(
     'attempts/$attemptId/answers',
     (_) {},

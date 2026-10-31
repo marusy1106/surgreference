@@ -60,6 +60,7 @@ class UserStats(models.Model):
     quizzes_finished = models.PositiveIntegerField(default=0)
     cases_finished = models.PositiveIntegerField(default=0)
     lessons_completed = models.PositiveIntegerField(default=0)
+    mistakes_finished = models.PositiveIntegerField(default=0)
     updated_at = models.DateTimeField(auto_now=True)
 
 

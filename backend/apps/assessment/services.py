@@ -9,7 +9,15 @@ from rest_framework.exceptions import ValidationError
 from apps.content.models import ReviewStatus
 from apps.core import ratelimit
 
-from .models import AttemptAnswer, QuestionKind, QuizAttempt, QuizAttemptMode, QuizAttemptStatus, QuizQuestion
+from .models import (
+    AttemptAnswer,
+    Question,
+    QuestionKind,
+    QuizAttempt,
+    QuizAttemptMode,
+    QuizAttemptStatus,
+    QuizQuestion,
+)
 from .signals import quiz_attempt_finished
 
 HOUR = 3600
@@ -21,12 +29,8 @@ SUSPICIOUS_AVG_ANSWER_MS = 1500
 
 @transaction.atomic
 def start_attempt(user, quiz):
-    """Фиксирует набор вопросов (опубликованные версии) и порядок вариантов. Прежние незавершённые
-    попытки этого теста закрываются как брошенные."""
-    ratelimit.enforce("quiz-start", str(user.pk), 30, HOUR)
-    QuizAttempt.objects.filter(user=user, quiz=quiz, status=QuizAttemptStatus.IN_PROGRESS).update(
-        status=QuizAttemptStatus.ABANDONED
-    )
+    """Тест темы: фиксирует набор вопросов (опубликованные версии) и порядок вариантов. Прежние
+    незавершённые попытки этого теста закрываются как брошенные."""
     links = (
         QuizQuestion.objects.filter(quiz=quiz, question__status=ReviewStatus.PUBLISHED)
         .select_related("question")
@@ -36,11 +40,31 @@ def start_attempt(user, quiz):
     questions = [link.question for link in links]
     if not questions:
         raise ValidationError({"quiz": ["В тесте пока нет опубликованных вопросов"]})
+    return _open_attempt(user, questions, quiz=quiz, discipline=quiz.discipline, mode=QuizAttemptMode.TOPIC)
+
+
+@transaction.atomic
+def start_practice(user, discipline, mode, question_ids):
+    """Тренировка и работа над ошибками: вопросы дисциплины без привязки к тесту. Набор выбирает
+    вызывающий модуль (progress — по освоению тем или по ошибкам)."""
+    by_id = Question.objects.filter(pk__in=question_ids, status=ReviewStatus.PUBLISHED).prefetch_related("options")
+    by_id = {q.pk: q for q in by_id}
+    questions = [by_id[i] for i in question_ids if i in by_id]
+    if not questions:
+        raise ValidationError({"discipline": ["В дисциплине пока нет опубликованных вопросов"]})
+    return _open_attempt(user, questions, quiz=None, discipline=discipline, mode=mode)
+
+
+def _open_attempt(user, questions, *, quiz, discipline, mode):
+    ratelimit.enforce("quiz-start", str(user.pk), 30, HOUR)
+    QuizAttempt.objects.filter(
+        user=user, quiz=quiz, discipline=discipline, mode=mode, status=QuizAttemptStatus.IN_PROGRESS
+    ).update(status=QuizAttemptStatus.ABANDONED)
     attempt = QuizAttempt.objects.create(
         user=user,
         quiz=quiz,
-        discipline=quiz.discipline,
-        mode=QuizAttemptMode.TOPIC,
+        discipline=discipline,
+        mode=mode,
         total_count=len(questions),
     )
     AttemptAnswer.objects.bulk_create(

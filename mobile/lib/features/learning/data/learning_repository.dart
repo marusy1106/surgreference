@@ -11,6 +11,15 @@ abstract interface class LearningRepository {
   Future<void> completeLesson(String id);
 
   Future<QuizSession> startQuiz(String quizId);
+
+  /// Дисциплины, где есть вопросы для тренировки, с числом ошибок.
+  Future<List<PracticeDiscipline>> practice();
+
+  /// 10 случайных вопросов дисциплины, чаще — из тем с низким освоением.
+  Future<QuizSession> startTraining(String slug);
+
+  /// Вопросы, на которые последний ответ был неверным; доступно после 5 ошибок.
+  Future<QuizSession> startMistakes(String slug);
   Future<void> answer(String attemptId, String questionId, List<String> optionIds);
 
   /// Завершить попытку и получить разбор.

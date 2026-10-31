@@ -115,6 +115,37 @@ class DisciplineSummary {
   final double mastery;
 }
 
+/// Дисциплина на вкладке «Практика»: сколько вопросов для тренировки и сколько ошибок.
+class PracticeDiscipline {
+  const PracticeDiscipline({
+    required this.slug,
+    required this.title,
+    required this.aura,
+    required this.questions,
+    required this.mistakes,
+    required this.mistakesAvailable,
+  });
+
+  factory PracticeDiscipline.fromJson(Map<String, dynamic> j) => PracticeDiscipline(
+    slug: j['slug'] as String,
+    title: j['title'] as String,
+    aura: Aura.fromToken(j['palette_token'] as String?),
+    questions: j['questions'] as int,
+    mistakes: j['mistakes'] as int,
+    mistakesAvailable: j['mistakes_available'] as bool,
+  );
+
+  final String slug;
+  final String title;
+  final Aura aura;
+  final int questions;
+  final int mistakes;
+  final bool mistakesAvailable;
+}
+
+/// Откуда вопросы: тест темы (id — тест), тренировка или работа над ошибками (id — slug дисциплины).
+enum QuizMode { topic, training, mistakes }
+
 class TopicSummary {
   const TopicSummary({
     required this.id,

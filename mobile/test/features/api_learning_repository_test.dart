@@ -59,6 +59,25 @@ void main() {
     expect(outcome.lessonId, '1');
   });
 
+  test('practice: training and mistakes sessions have no topic quiz', () async {
+    final practice = await repo.practice();
+    expect(practice.single.slug, 'surgery');
+    expect(practice.single.mistakes, 5);
+    expect(practice.single.mistakesAvailable, isTrue);
+
+    final training = await repo.startTraining('surgery');
+    expect(training.attemptId, trainingAttempt);
+    expect(training.topic, 'Тренировка · Хирургия');
+    expect(training.aura, Aura.surgery);
+
+    final mistakes = await repo.startMistakes('surgery');
+    final outcome = await repo.finishQuiz(mistakes.attemptId);
+    expect(outcome.topic, 'Работа над ошибками · Хирургия');
+    expect(outcome.correct, 5);
+    expect(outcome.xpGained, 10);
+    expect(outcome.lessonId, isNull);
+  });
+
   test('case flow', () async {
     final session = await repo.startCase('1');
     expect(session.stepTitles, hasLength(3));

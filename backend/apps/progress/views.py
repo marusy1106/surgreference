@@ -1,7 +1,10 @@
 from drf_spectacular.utils import OpenApiTypes, extend_schema
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.assessment import selectors as assessment
+from apps.assessment.serializers import attempt_payload
 from apps.content import selectors as content
 
 from . import selectors, services
@@ -27,3 +30,26 @@ class LessonCompleteView(APIView):
         lesson = content.published_lesson(lesson_id)
         first_time = services.complete_lesson(request.user, lesson)
         return Response({"completed": True, "first_time": first_time})
+
+
+class PracticeView(APIView):
+    @extend_schema(responses=OpenApiTypes.OBJECT, tags=["learning"])
+    def get(self, request):
+        """Дисциплины для тренировки: число вопросов и ошибок, доступна ли работа над ошибками."""
+        return Response(selectors.practice_overview(request.user))
+
+
+class TrainingView(APIView):
+    @extend_schema(request=None, responses={201: OpenApiTypes.OBJECT}, tags=["learning"])
+    def post(self, request, slug):
+        """Тренировка: 10 случайных вопросов дисциплины, чаще — из тем с низким освоением."""
+        attempt = services.start_training(request.user, content.published_discipline(slug))
+        return Response(attempt_payload(attempt, assessment.attempt_answers(attempt)), status=status.HTTP_201_CREATED)
+
+
+class MistakesView(APIView):
+    @extend_schema(request=None, responses={201: OpenApiTypes.OBJECT}, tags=["learning"])
+    def post(self, request, slug):
+        """Работа над ошибками: до 10 вопросов, на которые последний ответ был неверным."""
+        attempt = services.start_mistakes(request.user, content.published_discipline(slug))
+        return Response(attempt_payload(attempt, assessment.attempt_answers(attempt)), status=status.HTTP_201_CREATED)

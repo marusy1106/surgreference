@@ -1,4 +1,4 @@
-from django.db.models import Count, Max, Q
+from django.db.models import Count, Exists, Max, OuterRef, Q
 from django.shortcuts import get_object_or_404
 
 from apps.content.models import CatalogStatus, ReviewStatus
@@ -65,6 +65,18 @@ def best_previous_correct(attempt) -> int | None:
     )
 
 
+def first_time_correct(attempt) -> int:
+    """Верные ответы попытки на вопросы, на которые пользователь раньше ни разу не ответил верно."""
+    earlier = AttemptAnswer.objects.filter(
+        attempt__user=attempt.user,
+        attempt__status=QuizAttemptStatus.FINISHED,
+        attempt__finished_at__lt=attempt.finished_at,
+        question_id=OuterRef("question_id"),
+        is_correct=True,
+    )
+    return AttemptAnswer.objects.filter(attempt=attempt, is_correct=True).exclude(Exists(earlier)).count()
+
+
 def last_finished_attempt(user):
     return (
         QuizAttempt.objects.filter(user=user, status=QuizAttemptStatus.FINISHED, quiz__isnull=False)
@@ -104,3 +116,50 @@ def published_question_counts(topic_ids):
         .annotate(n=Count("pk"))
     )
     return {r["topic_id"]: r["n"] for r in rows}
+
+
+def _discipline_questions():
+    return Question.objects.filter(
+        status=ReviewStatus.PUBLISHED,
+        topic__status=CatalogStatus.PUBLISHED,
+        topic__discipline__status=CatalogStatus.PUBLISHED,
+    )
+
+
+def discipline_questions(discipline):
+    """Опубликованные вопросы опубликованных тем дисциплины: [(question_id, topic_id)]."""
+    return list(_discipline_questions().filter(topic__discipline=discipline).values_list("pk", "topic_id"))
+
+
+def discipline_question_counts(discipline_ids):
+    rows = (
+        _discipline_questions()
+        .filter(topic__discipline_id__in=discipline_ids)
+        .values("topic__discipline_id")
+        .annotate(n=Count("pk"))
+    )
+    return {r["topic__discipline_id"]: r["n"] for r in rows}
+
+
+def mistakes(user, discipline_ids):
+    """Ошибки — опубликованные вопросы, последний ответ на которые неверный:
+    {discipline_id: [question_id, …]}, от свежих ошибок к старым."""
+    published = _discipline_questions().filter(topic__discipline_id__in=discipline_ids).values("pk")
+    last_answers = (
+        AttemptAnswer.objects.filter(
+            attempt__user=user,
+            attempt__status=QuizAttemptStatus.FINISHED,
+            is_correct__isnull=False,
+            question_id__in=published,
+        )
+        .order_by("question_id", "-attempt__finished_at", "-position")
+        .distinct("question_id")
+        .values("question_id", "question__topic__discipline_id", "is_correct", "attempt__finished_at")
+    )
+    wrong = sorted(
+        (a for a in last_answers if not a["is_correct"]), key=lambda a: a["attempt__finished_at"], reverse=True
+    )
+    result = {}
+    for a in wrong:
+        result.setdefault(a["question__topic__discipline_id"], []).append(a["question_id"])
+    return result
