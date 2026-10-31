@@ -170,7 +170,7 @@ class _CaseFlowPageState extends ConsumerState<CaseFlowPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(r.summary.title, style: theme.labelLarge!.copyWith(color: AuraInk.inkMuted)),
+                  Text(r.summary.title, style: theme.labelLarge!.copyWith(color: AuraInk.mutedOf(context))),
                   const SizedBox(height: SrSpace.m),
                   DotNumber(
                     '$right/${r.steps.length}',
@@ -180,7 +180,7 @@ class _CaseFlowPageState extends ConsumerState<CaseFlowPage> {
                   const SizedBox(height: SrSpace.s),
                   Text(
                     'верных решений · ${(r.score * 100).round()} % баллов · +${r.xpGained} XP',
-                    style: theme.labelLarge!.copyWith(color: AuraInk.ink),
+                    style: theme.labelLarge!.copyWith(color: AuraInk.inkOf(context)),
                   ),
                 ],
               ),

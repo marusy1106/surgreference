@@ -114,11 +114,11 @@ class CaseStepScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(v.steps[v.current], style: theme.labelLarge!.copyWith(color: AuraInk.inkMuted)),
+                  Text(v.steps[v.current], style: theme.labelLarge!.copyWith(color: AuraInk.mutedOf(context))),
                   const SizedBox(height: SrSpace.s),
-                  Text(v.situation, style: theme.bodyLarge!.copyWith(color: AuraInk.ink)),
+                  Text(v.situation, style: theme.bodyLarge!.copyWith(color: AuraInk.inkOf(context))),
                   const SizedBox(height: SrSpace.m),
-                  Text(v.prompt, style: theme.titleMedium!.copyWith(color: AuraInk.ink)),
+                  Text(v.prompt, style: theme.titleMedium!.copyWith(color: AuraInk.inkOf(context))),
                 ],
               ),
             ),

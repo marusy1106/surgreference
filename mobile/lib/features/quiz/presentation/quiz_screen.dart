@@ -96,10 +96,10 @@ class QuizScreen extends StatelessWidget {
                       children: [
                         Text(
                           q.multiple ? 'Выберите все верные ответы' : 'Выберите один ответ',
-                          style: theme.labelMedium!.copyWith(color: AuraInk.inkMuted),
+                          style: theme.labelMedium!.copyWith(color: AuraInk.mutedOf(context)),
                         ),
                         const SizedBox(height: SrSpace.m),
-                        Text(q.text, style: theme.titleLarge!.copyWith(color: AuraInk.ink)),
+                        Text(q.text, style: theme.titleLarge!.copyWith(color: AuraInk.inkOf(context))),
                       ],
                     ),
                   ),

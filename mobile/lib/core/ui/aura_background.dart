@@ -41,6 +41,8 @@ class _AuraBackgroundState extends State<AuraBackground> with SingleTickerProvid
   @override
   Widget build(BuildContext context) {
     final aura = widget.aura;
+    // Светлая тема — пастельная сфера: тёмный текст поверх неё должен читаться.
+    final light = Theme.of(context).brightness == Brightness.light;
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -59,25 +61,28 @@ class _AuraBackgroundState extends State<AuraBackground> with SingleTickerProvid
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-                          ImageFiltered(
-                            imageFilter: ImageFilter.blur(sigmaX: d * 0.07, sigmaY: d * 0.07),
-                            child: Transform.scale(
-                              scale: 0.94 + 0.08 * t,
-                              child: Container(
-                                width: d * 0.62,
-                                height: d * 0.9,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.all(Radius.elliptical(d * 0.31, d * 0.45)),
-                                  gradient: RadialGradient(
-                                    colors: [
-                                      Color.lerp(aura.start, const Color(0xFFFFD2A8), 0.55)!,
-                                      aura.start,
-                                      _coolRim,
-                                      _coolRim.withValues(alpha: 0),
-                                    ],
-                                    stops: const [0, 0.42, 0.82, 1],
-                                    center: Alignment(0.1 - 0.2 * t, 0.15),
-                                    radius: 0.62,
+                          Opacity(
+                            opacity: light ? 0.32 : 1,
+                            child: ImageFiltered(
+                              imageFilter: ImageFilter.blur(sigmaX: d * 0.07, sigmaY: d * 0.07),
+                              child: Transform.scale(
+                                scale: 0.94 + 0.08 * t,
+                                child: Container(
+                                  width: d * 0.62,
+                                  height: d * 0.9,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.all(Radius.elliptical(d * 0.31, d * 0.45)),
+                                    gradient: RadialGradient(
+                                      colors: [
+                                        Color.lerp(aura.start, const Color(0xFFFFD2A8), 0.55)!,
+                                        aura.start,
+                                        _coolRim,
+                                        _coolRim.withValues(alpha: 0),
+                                      ],
+                                      stops: const [0, 0.42, 0.82, 1],
+                                      center: Alignment(0.1 - 0.2 * t, 0.15),
+                                      radius: 0.62,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -85,7 +90,7 @@ class _AuraBackgroundState extends State<AuraBackground> with SingleTickerProvid
                           ),
                           CustomPaint(
                             size: Size.square(d * 1.6),
-                            painter: _OrbitPainter(d, t, SrColors.of(context).text),
+                            painter: _OrbitPainter(d, t, SrColors.of(context).text, light ? 0.16 : 0.32),
                           ),
                         ],
                       ),
@@ -105,11 +110,12 @@ class _AuraBackgroundState extends State<AuraBackground> with SingleTickerProvid
 const _coolRim = Color(0xFF3E5BE0);
 
 class _OrbitPainter extends CustomPainter {
-  _OrbitPainter(this.d, this.t, this.ink);
+  _OrbitPainter(this.d, this.t, this.ink, this.lineAlpha);
 
   final double d;
   final double t;
   final Color ink;
+  final double lineAlpha;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -117,7 +123,7 @@ class _OrbitPainter extends CustomPainter {
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1
-      ..color = ink.withValues(alpha: 0.32);
+      ..color = ink.withValues(alpha: lineAlpha);
     for (final (i, k) in [0.62, 0.82, 1.02].indexed) {
       canvas.save();
       canvas.translate(center.dx, center.dy);
@@ -131,5 +137,5 @@ class _OrbitPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_OrbitPainter old) => old.t != t || old.d != d || old.ink != ink;
+  bool shouldRepaint(_OrbitPainter old) => old.t != t || old.d != d || old.ink != ink || old.lineAlpha != lineAlpha;
 }

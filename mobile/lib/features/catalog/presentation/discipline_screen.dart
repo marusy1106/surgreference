@@ -41,12 +41,12 @@ class DisciplineScreen extends StatelessWidget {
                 children: [
                   Text(
                     '${d.topics.length} ${plural(d.topics.length, 'тема', 'темы', 'тем')}',
-                    style: theme.labelLarge!.copyWith(color: AuraInk.inkMuted),
+                    style: theme.labelLarge!.copyWith(color: AuraInk.mutedOf(context)),
                   ),
                   const SizedBox(height: SrSpace.s),
                   Semantics(
                     header: true,
-                    child: Text(d.title, style: theme.headlineMedium!.copyWith(color: AuraInk.ink)),
+                    child: Text(d.title, style: theme.headlineMedium!.copyWith(color: AuraInk.inkOf(context))),
                   ),
                 ],
               ),

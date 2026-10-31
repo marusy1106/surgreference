@@ -102,13 +102,13 @@ class PracticePage extends ConsumerWidget {
                     children: [
                       Text(
                         '${c.discipline} · синтетический кейс',
-                        style: theme.labelMedium!.copyWith(color: AuraInk.inkMuted),
+                        style: theme.labelMedium!.copyWith(color: AuraInk.mutedOf(context)),
                       ),
                       const SizedBox(height: SrSpace.s),
-                      Text(c.title, style: theme.titleLarge!.copyWith(color: AuraInk.ink)),
+                      Text(c.title, style: theme.titleLarge!.copyWith(color: AuraInk.inkOf(context))),
                       if (c.summary.isNotEmpty) ...[
                         const SizedBox(height: SrSpace.xs),
-                        Text(c.summary, style: theme.bodyMedium!.copyWith(color: AuraInk.ink)),
+                        Text(c.summary, style: theme.bodyMedium!.copyWith(color: AuraInk.inkOf(context))),
                       ],
                     ],
                   ),

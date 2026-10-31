@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme/theme.dart';
 
-/// Карточка дисциплины как в референсах Activity и Veri: глубокая основа, мягкое радиальное
-/// свечение, лёгкое зерно и цветной ореол снаружи. Текст внутри — белый (см. [AuraInk]).
+/// Карточка дисциплины. У каждой темы свой язык:
+/// - тёмная — как Activity и Veri: глубокая основа, радиальное свечение, зерно, цветной ореол, белый текст;
+/// - светлая — как Aetna: белая карточка с тонкой рамкой, едва заметный оттенок дисциплины сверху,
+///   тёмный текст и круглая чёрная кнопка-стрелка ↗, если карточку можно открыть ([cornerArrow]).
+/// Цвет текста внутри — [AuraInk.inkOf] / [AuraInk.mutedOf].
 class AuraCard extends StatelessWidget {
   const AuraCard({
     super.key,
@@ -15,6 +18,7 @@ class AuraCard extends StatelessWidget {
     this.padding = const EdgeInsets.all(SrSpace.xl),
     this.minHeight = 0,
     this.glow = true,
+    this.cornerArrow = false,
   });
 
   final Aura aura;
@@ -24,8 +28,13 @@ class AuraCard extends StatelessWidget {
   final double minHeight;
   final bool glow;
 
+  /// Светлая тема: круглая кнопка ↗ в правом верхнем углу (карточкам с местом под неё). Декоративная:
+  /// нажимается вся карточка.
+  final bool cornerArrow;
+
   @override
   Widget build(BuildContext context) {
+    if (Theme.of(context).brightness == Brightness.light) return _light(context);
     final radius = BorderRadius.circular(SrRadius.card);
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -65,6 +74,64 @@ class AuraCard extends StatelessWidget {
                 ),
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _light(BuildContext context) {
+    final c = SrColors.of(context);
+    final radius = BorderRadius.circular(SrRadius.card);
+    final ink = c.text;
+    return Material(
+      color: c.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: radius,
+        side: BorderSide(color: c.line),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Ink(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              aura.start.withValues(alpha: AuraInk.lightTint),
+              aura.start.withValues(alpha: 0),
+            ],
+            stops: const [0, 0.7],
+          ),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          child: Stack(
+            children: [
+              Container(
+                constraints: BoxConstraints(minHeight: minHeight),
+                padding: padding,
+                child: DefaultTextStyle.merge(
+                  style: TextStyle(color: ink),
+                  child: IconTheme.merge(
+                    data: IconThemeData(color: ink),
+                    child: child,
+                  ),
+                ),
+              ),
+              if (cornerArrow)
+                PositionedDirectional(
+                  top: SrSpace.m,
+                  end: SrSpace.m,
+                  child: ExcludeSemantics(
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(color: c.accent, shape: BoxShape.circle),
+                      child: Icon(Icons.north_east_rounded, size: 18, color: c.onAccent),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ),

@@ -121,7 +121,7 @@ class HomeScreen extends StatelessWidget {
                           final progress? => RulerScale(
                             value: progress,
                             ticks: 31,
-                            color: AuraInk.ink,
+                            color: AuraInk.inkOf(context),
                             semanticLabel: 'Прочитано ${(progress * 100).round()} %',
                             endLabel: '${(progress * 100).round()} %',
                           ),
@@ -312,7 +312,7 @@ class _CarouselCard extends StatelessWidget {
               label,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: theme.labelMedium!.copyWith(color: AuraInk.inkMuted),
+              style: theme.labelMedium!.copyWith(color: AuraInk.mutedOf(context)),
             ),
             const SizedBox(height: SrSpace.s),
             if (title != null)
@@ -320,7 +320,7 @@ class _CarouselCard extends StatelessWidget {
                 child: Text(
                   title!,
                   overflow: TextOverflow.fade,
-                  style: theme.titleLarge!.copyWith(color: AuraInk.ink),
+                  style: theme.titleLarge!.copyWith(color: AuraInk.inkOf(context)),
                 ),
               )
             else

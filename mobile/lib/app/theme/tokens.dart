@@ -141,11 +141,21 @@ enum Aura {
   Color get peak => Color.lerp(end, start, AuraInk.glowStrength)!;
 }
 
-/// Текст на ауре — белый: свечение подобрано так, что даже в самой яркой точке контраст ≥ 4.5.
+/// Текст на карточке дисциплины. Тёмная тема: белый на свечении (подобрано так, что даже в самой
+/// яркой точке контраст ≥ 4.5). Светлая: обычный тёмный текст на белой карточке с лёгким оттенком.
 abstract final class AuraInk {
   static const ink = Color(0xFFFFFFFF);
   static const inkMuted = Color(0xDBFFFFFF);
   static const glowStrength = 0.85;
+
+  /// Оттенок дисциплины на белой карточке светлой темы — едва заметный, текст остаётся на белом.
+  static const lightTint = 0.10;
+
+  static bool _dark(BuildContext context) => Theme.of(context).brightness == Brightness.dark;
+
+  static Color inkOf(BuildContext context) => _dark(context) ? ink : SrColors.of(context).text;
+
+  static Color mutedOf(BuildContext context) => _dark(context) ? inkMuted : SrColors.of(context).textMuted;
 }
 
 abstract final class SrSpace {

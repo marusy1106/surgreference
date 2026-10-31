@@ -84,19 +84,19 @@ class QuizResultScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(r.topic, style: theme.labelLarge!.copyWith(color: AuraInk.inkMuted)),
+                  Text(r.topic, style: theme.labelLarge!.copyWith(color: AuraInk.mutedOf(context))),
                   const SizedBox(height: SrSpace.l),
                   DotNumber('${r.score}/${r.total}', dotSize: 9, semanticLabel: 'Результат ${r.score} из ${r.total}'),
                   const SizedBox(height: SrSpace.l),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: SrSpace.m, vertical: SrSpace.xs + 2),
-                    decoration: const ShapeDecoration(color: AuraInk.ink, shape: StadiumBorder()),
+                    decoration: ShapeDecoration(color: AuraInk.inkOf(context), shape: const StadiumBorder()),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.bolt_rounded, size: 18, color: SrColors.dark.accent),
+                        Icon(Icons.bolt_rounded, size: 18, color: SrColors.of(context).bg),
                         const SizedBox(width: SrSpace.xs),
-                        Text('+${r.xpGained} XP', style: theme.labelLarge!.copyWith(color: SrColors.dark.accent)),
+                        Text('+${r.xpGained} XP', style: theme.labelLarge!.copyWith(color: SrColors.of(context).bg)),
                       ],
                     ),
                   ),
