@@ -315,3 +315,23 @@ def test_review_queue_filter(client, draft, author, reviewer):
 
     assert page.status_code == 200
     assert "Аппендицит" in page.content.decode()
+
+
+def test_admin_cannot_delete_reviewed_content(client, draft, author, reviewer, editor):
+    publish_flow(draft, author, reviewer, editor)
+    login(client, editor)
+
+    delete = reverse("admin:content_lessonrevision_delete", args=[draft.pk])
+    assert client.get(delete).status_code == 403
+    changelist = client.get(reverse("admin:content_lessonrevision_changelist")).content.decode()
+    assert "delete_selected" not in changelist
+
+
+def test_seed_demo_editorial(demo_content, settings):
+    settings.DEBUG = True
+    call_command("seed_demo_editorial", stdout=io.StringIO())
+
+    revision = LessonRevision.objects.get(title="Острый холецистит: клиника")
+    reviewer = revision.author.__class__.objects.get(email="demo-reviewer@example.org")
+    assert editorial.submit(revision, revision.author).status == ReviewStatus.IN_REVIEW
+    assert editorial.allowed_actions(reviewer, revision.__class__.objects.get(pk=revision.pk))[0] == "approve"

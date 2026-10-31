@@ -105,6 +105,17 @@ class EditorialAdmin(admin.ModelAdmin):
             return sorted(fields - {"id"})
         return [f for f in PROCESS_FIELDS if f in fields]
 
+    def has_delete_permission(self, request, obj=None):
+        # Удалить можно только черновик: всё, что прошло проверку, остаётся в истории (архив, журнал).
+        allowed = super().has_delete_permission(request, obj)
+        return allowed and (obj is None or obj.status == ReviewStatus.DRAFT)
+
+    def get_actions(self, request):
+        # Массовое удаление не смотрит на статус каждой записи — убираем.
+        actions = super().get_actions(request)
+        actions.pop("delete_selected", None)
+        return actions
+
     def get_inlines(self, request, obj):
         return [*super().get_inlines(request, obj), SourceInline]
 

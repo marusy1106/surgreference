@@ -29,9 +29,12 @@ cd backend && python3.13 -m venv .venv && .venv/bin/pip install -r requirements/
 
 ```bash
 .venv/bin/python manage.py seed_demo_content   # дисциплины, тема «Острый аппендицит» (урок, тест), кейс
+.venv/bin/python manage.py seed_demo_editorial # автор, рецензент хирургии, главный редактор и черновик урока
 ```
 
 Только при `DEBUG=True` (для стенда беты — `--force`). Авторы контента — неактивные служебные пользователи.
+
+`seed_demo_editorial` (только `DEBUG=True`) создаёт трёх демо-сотрудников `demo-author@`, `demo-reviewer@`, `demo-editor@example.org` с новым общим паролем — он печатается один раз при каждом запуске. Чтобы войти в админку самому, подключите второй фактор: `manage.py enroll_totp --reset demo-author@example.org` покажет QR-код для приложения-аутентификатора.
 
 ## Доступ в админку
 
