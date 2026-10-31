@@ -31,7 +31,7 @@ def test_display_name_unique_case_insensitive(make_user):
 
 def test_new_user_is_not_verified_and_not_in_leaderboard(make_user):
     user = make_user()
-    assert not user.is_verified
+    assert not user.is_email_verified
     assert user.leaderboard_opt_in is False
     assert user.trust_status == "ok"
 
@@ -40,7 +40,7 @@ def test_superuser_is_verified(django_user_model, db):
     admin = django_user_model.objects.create_superuser(
         email="admin@example.org", display_name="admin", password="very-long-password"
     )
-    assert admin.is_staff and admin.is_superuser and admin.is_verified
+    assert admin.is_staff and admin.is_superuser and admin.is_email_verified
 
 
 @override_settings(PASSWORD_HASHERS=["apps.accounts.hashers.TunedArgon2PasswordHasher"])

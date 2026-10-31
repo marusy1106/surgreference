@@ -5,3 +5,6 @@ class AuditConfig(AppConfig):
     name = "apps.audit"
     label = "audit"
     verbose_name = "Аудит"
+
+    def ready(self):
+        from . import receivers  # noqa: F401

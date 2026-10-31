@@ -35,6 +35,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.postgres",
+    "django_otp",
+    "django_otp.plugins.otp_totp",
+    "django_otp.plugins.otp_static",
     "rest_framework",
     "drf_spectacular",
     *LOCAL_APPS,
@@ -46,6 +49,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -102,6 +106,26 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
 ]
 
+# Access — JWT HS256 с kid для ротации ключей: JWT_SIGNING_KEYS="k2=...,k1=...", JWT_ACTIVE_KID=k2.
+# Старые ключи остаются в списке на время жизни access-токена, затем удаляются.
+JWT_SIGNING_KEYS = env.dict("JWT_SIGNING_KEYS", default={})
+JWT_ACTIVE_KID = env("JWT_ACTIVE_KID", default="")
+if not JWT_SIGNING_KEYS:
+    JWT_SIGNING_KEYS, JWT_ACTIVE_KID = {"dev": SECRET_KEY}, "dev"
+JWT_ISSUER = "surgreference"
+ACCESS_TOKEN_TTL = 15 * 60
+REFRESH_TOKEN_SLIDING_TTL = 30 * 24 * 3600
+REFRESH_TOKEN_ABSOLUTE_TTL = 90 * 24 * 3600
+MAX_ACTIVE_SESSIONS = 10
+
+ONE_TIME_CODE_TTL = 15 * 60
+ONE_TIME_CODE_MAX_ATTEMPTS = 5
+UNVERIFIED_ACCOUNT_TTL_DAYS = 7
+LOGIN_LOCKOUT_FAILURES = 10
+LOGIN_LOCKOUT_SECONDS = 15 * 60
+
+OTP_TOTP_ISSUER = "SurgReference"
+
 # --- Локализация --------------------------------------------------------------
 LANGUAGE_CODE = "ru"
 TIME_ZONE = "UTC"
@@ -137,7 +161,7 @@ else:
 
 # --- DRF / OpenAPI ------------------------------------------------------------
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": [],  # JWT-аутентификация появится на этапе 3
+    "DEFAULT_AUTHENTICATION_CLASSES": ["apps.accounts.authentication.JWTAuthentication"],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
     "DEFAULT_PARSER_CLASSES": ["rest_framework.parsers.JSONParser"],
@@ -149,6 +173,8 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_THROTTLE_RATES": {"anon": "60/min", "user": "120/min"},
     "UNAUTHENTICATED_USER": None,
+    # Сколько доверенных прокси перед приложением (для IP в лимитах и журнале).
+    "NUM_PROXIES": env.int("NUM_PROXIES", default=0),
 }
 
 SPECTACULAR_SETTINGS = {
@@ -168,6 +194,9 @@ CELERY_TASK_ALWAYS_EAGER = False
 CELERY_TASK_ACKS_LATE = True
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CELERY_TIMEZONE = "UTC"
+CELERY_BEAT_SCHEDULE = {
+    "accounts-cleanup": {"task": "accounts.cleanup", "schedule": 3600},
+}
 
 # --- Почта ----------------------------------------------------------------------
 EMAIL_CONFIG = env.email("EMAIL_URL", default="consolemail://")

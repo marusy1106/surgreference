@@ -61,7 +61,7 @@ erDiagram
 Индекс `(user_id, purpose) WHERE consumed_at IS NULL`.
 
 **user_sessions** — одна строка = одно устройство
-`id uuid (sid), user_id FK, refresh_token_hash char(64) UNIQUE, family_id uuid, device_name varchar(64), platform CHECK(ios, android), app_version, ip_last inet, created_at, last_used_at, expires_at, revoked_at NULL, revoke_reason`.
+`id uuid (sid), user_id FK, refresh_token_hash char(64) UNIQUE, previous_refresh_hash char(64) (индекс; для reuse detection), family_id uuid, device_name varchar(64), platform CHECK(ios, android), app_version, ip_last inet, created_at, last_used_at, expires_at (скользящий, 30 дней), absolute_expires_at (90 дней от входа), revoked_at NULL, revoke_reason`.
 
 **consents**
 `id, user_id FK, document CHECK(pd_processing, terms, privacy_policy, marketing), document_version varchar(16), accepted_at, ip inet, withdrawn_at NULL`.

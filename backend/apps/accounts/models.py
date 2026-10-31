@@ -84,7 +84,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.display_name
 
     @property
-    def is_verified(self) -> bool:
+    def is_email_verified(self) -> bool:
         return self.email_verified_at is not None
 
     def clean(self):
@@ -128,17 +128,22 @@ class OneTimeCode(UUIDModel):
 
 
 class UserSession(UUIDModel):
-    """Сессия устройства. id = sid в access-токене."""
+    """Сессия устройства. id = sid в access-токене.
+
+    При ротации refresh хеш текущего токена переезжает в previous_refresh_hash: его повторное предъявление
+    означает, что токен скопирован, и сессия отзывается (reuse detection)."""
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="sessions")
     refresh_token_hash = models.CharField(max_length=64, unique=True)
+    previous_refresh_hash = models.CharField(max_length=64, blank=True, db_index=True)
     family_id = models.UUIDField(db_index=True)
     device_name = models.CharField(max_length=64, blank=True)
     platform = models.CharField(max_length=16, choices=Platform)
     app_version = models.CharField(max_length=32, blank=True)
     ip_last = models.GenericIPAddressField(null=True, blank=True)
     last_used_at = models.DateTimeField(default=timezone.now)
-    expires_at = models.DateTimeField()
+    expires_at = models.DateTimeField("истекает (скользящий срок)")
+    absolute_expires_at = models.DateTimeField("истекает (абсолютный срок)")
     revoked_at = models.DateTimeField(null=True, blank=True)
     revoke_reason = models.CharField(max_length=32, blank=True)
 

@@ -116,8 +116,8 @@ POST   /auth/login                    POST /auth/refresh             POST /auth/
 POST   /auth/password/forgot          POST /auth/password/reset      POST /auth/password/change
 GET    /auth/sessions                 DELETE /auth/sessions/{id}     DELETE /auth/sessions (кроме текущей)
 
-GET    /me                            PATCH /me                      DELETE /me (удаление, с кодом)
-POST   /me/export                     GET  /me/consents              POST /me/consents
+GET    /me                            PATCH /me                      GET  /me/consents
+POST   /me/deletion-code              POST /me/delete {code}         POST /me/export
 GET    /me/education                  PUT  /me/education             GET  /me/education/history
 
 GET    /universities?search=          GET  /universities/{id}/faculties   GET /specialties

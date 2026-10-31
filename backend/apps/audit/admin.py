@@ -4,6 +4,14 @@ from .models import AdminAuditLog, SecurityEvent
 
 
 class ReadOnlyAdmin(admin.ModelAdmin):
+    """Журналы видит только superadmin; изменить или удалить запись нельзя никому."""
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_module_permission(self, request):
+        return request.user.is_superuser
+
     def has_add_permission(self, request):
         return False
 
