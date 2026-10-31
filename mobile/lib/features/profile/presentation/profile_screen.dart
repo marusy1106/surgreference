@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../core/ui/ui.dart';
 
+enum ProfileAction { theme, sessions, password, export, documents, feedback, logout, delete, education }
+
 class AchievementView {
   const AchievementView({required this.title, required this.icon, required this.unlocked});
 
@@ -35,16 +37,16 @@ class ProfileScreen extends StatelessWidget {
 
   final ProfileView view;
   final VoidCallback? onProgress;
-  final ValueChanged<String>? onSetting;
+  final ValueChanged<ProfileAction>? onSetting;
 
-  static const settings = <(IconData, String)>[
-    (Icons.contrast_rounded, 'Тема оформления'),
-    (Icons.devices_rounded, 'Сессии и устройства'),
-    (Icons.lock_outline_rounded, 'Пароль и email'),
-    (Icons.leaderboard_outlined, 'Участие в рейтинге'),
-    (Icons.download_rounded, 'Выгрузить мои данные'),
-    (Icons.description_outlined, 'Документы и согласия'),
-    (Icons.chat_bubble_outline_rounded, 'Обратная связь'),
+  static const settings = <(ProfileAction, IconData, String)>[
+    (ProfileAction.theme, Icons.contrast_rounded, 'Тема оформления'),
+    (ProfileAction.sessions, Icons.devices_rounded, 'Сессии и устройства'),
+    (ProfileAction.password, Icons.lock_outline_rounded, 'Сменить пароль'),
+    (ProfileAction.export, Icons.download_rounded, 'Выгрузить мои данные'),
+    (ProfileAction.documents, Icons.description_outlined, 'Документы и согласия'),
+    (ProfileAction.feedback, Icons.chat_bubble_outline_rounded, 'Обратная связь'),
+    (ProfileAction.logout, Icons.logout_rounded, 'Выйти из аккаунта'),
   ];
 
   @override
@@ -98,7 +100,7 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(width: SrSpace.m),
                   Expanded(
                     child: Tile(
-                      onTap: () => onSetting?.call('education'),
+                      onTap: () => onSetting?.call(ProfileAction.education),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -130,14 +132,14 @@ class ProfileScreen extends StatelessWidget {
               clipBehavior: Clip.antiAlias,
               child: Column(
                 children: [
-                  for (final (i, (icon, title)) in settings.indexed) ...[
+                  for (final (i, (action, icon, title)) in settings.indexed) ...[
                     if (i > 0) Divider(height: 1, indent: 56, color: c.line),
                     ListTile(
                       minTileHeight: 52,
                       leading: Icon(icon, color: c.text),
                       title: Text(title, style: theme.bodyMedium),
                       trailing: Icon(Icons.chevron_right_rounded, color: c.textMuted),
-                      onTap: () => onSetting?.call(title),
+                      onTap: () => onSetting?.call(action),
                     ),
                   ],
                 ],
@@ -145,7 +147,7 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: SrSpace.m),
             TextButton(
-              onPressed: () => onSetting?.call('delete'),
+              onPressed: () => onSetting?.call(ProfileAction.delete),
               style: TextButton.styleFrom(foregroundColor: c.error, minimumSize: const Size.fromHeight(kMinTapTarget)),
               child: const Text('Удалить аккаунт'),
             ),

@@ -1,32 +1,46 @@
 # SurgReference — mobile
 
-Flutter 3.41, iOS 15+ / Android 8+. Этап 4: дизайн-система, UI-кит и макеты ключевых экранов на демо-данных
-(данные из API подключаются на этапе 5).
+Flutter 3.41, iOS 15+ / Android 8+. Riverpod, go_router, dio, flutter_secure_storage.
+
+- **Авторизация и аккаунт работают с API**: регистрация с согласиями, код из письма, вход, восстановление
+  пароля, автоматическое обновление токенов, сессии и устройства, смена пароля, выгрузка данных, удаление аккаунта.
+- **Учебные разделы** (каталог, урок, тест с разбором, кейс, прогресс, рейтинг) работают через
+  `LearningRepository` на демо-данных — экраны помечены «Демо-контент». Когда на бэкенде появятся эндпоинты
+  контента (этап 5), достаточно реализации поверх API и замены `learningRepositoryProvider`.
 
 ```
 lib/
-├── app/theme/        # токены (SrColors, Aura, отступы, радиусы), типографика Manrope, ThemeData
-├── app/shell.dart    # нижняя навигация из 5 вкладок
+├── app/              # router (redirect по состоянию входа), providers, тема, нижняя навигация
+├── core/api/         # ApiClient (токены, одиночный refresh при 401), ApiException, хранилище refresh-токена
 ├── core/ui/          # UI-кит: AuraCard, DotNumber, PillButton, AnswerOption… (ui.dart — всё разом)
-├── features/*/presentation/  # экраны; принимают готовые данные, сами ничего не загружают
-└── design_preview/   # кликабельный прототип и демо-данные (вымышленные)
+├── features/auth/    # AuthApi, AuthController (состояния входа), экраны входа и регистрации
+├── features/learning/# LearningRepository и демо-реализация
+├── features/*/presentation/  # *_screen.dart — вёрстка на готовых данных, *_page.dart — связь с состоянием
+└── design_preview/   # демо-данные (вымышленные) для макетов, витрины и демо-репозитория
 widgetbook/           # витрина UI-кита
 test/                 # контраст, доступность, эталонные скриншоты (goldens/)
 ```
 
-## Посмотреть
+## Запуск
+
+Нужны Xcode (iOS) и Android Studio (Android) — проверка: `flutter doctor`. Бэкенд — см. `backend/README.md`;
+письма с кодами при `CELERY_TASK_ALWAYS_EAGER=true` печатаются в консоль `runserver`.
 
 ```bash
-flutter run                                   # прототип: онбординг → код → вкладки
-cd widgetbook && flutter run -d chrome        # витрина: компоненты с настройками, экраны, тема, шрифт до 200 %
+flutter run -d ios                                                              # симулятор iOS → localhost:8000
+flutter run -d android --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1/  # эмулятор Android
+cd widgetbook && flutter run -d chrome                                          # витрина UI-кита
 ```
+
+HTTP разрешён только к локальным адресам и только в debug (Android) / только localhost (iOS); прод — HTTPS.
+Refresh-токен — в Keychain/Keystore, access-токен — только в памяти, бэкап приложения на Android выключен.
 
 ## Проверки (то же, что в CI)
 
 ```bash
 dart format --output=none --set-exit-if-changed lib test widgetbook/lib
 flutter analyze
-flutter test --exclude-tags golden    # контраст токенов, нет переполнений при шрифте 200 %, тач-цели ≥ 44, подписи кнопок
+flutter test --exclude-tags golden    # API-клиент, роутер, сквозные сценарии, контраст, шрифт 200 %, тач-цели
 flutter test --tags golden            # эталонные скриншоты, только на macOS
 ```
 

@@ -17,9 +17,9 @@ class HomeView {
   });
 
   final String nickname;
-  final ({String discipline, String title, double progress, Aura aura}) continueLesson;
-  final ({String topic, int score, int total, Aura aura}) lastQuiz;
-  final ({String title, String discipline, Aura aura}) caseOfDay;
+  final ({String id, String discipline, String title, double progress, Aura aura}) continueLesson;
+  final ({String topicId, String topic, int score, int total, Aura aura}) lastQuiz;
+  final ({String id, String title, String discipline, Aura aura}) caseOfDay;
   final int streakDays;
   final int streakGoal;
   final int weekXp;

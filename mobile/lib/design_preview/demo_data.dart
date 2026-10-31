@@ -18,13 +18,14 @@ abstract final class Demo {
   static const home = HomeView(
     nickname: nickname,
     continueLesson: (
+      id: 'appendicitis-diagnosis',
       discipline: 'Хирургия',
       title: 'Острый аппендицит: диагностика',
       progress: 0.6,
       aura: Aura.surgery,
     ),
-    lastQuiz: (topic: 'Острый аппендицит', score: 8, total: 10, aura: Aura.neurology),
-    caseOfDay: (title: 'Боль в правой подвздошной области', discipline: 'Хирургия', aura: Aura.therapy),
+    lastQuiz: (topicId: 'appendicitis', topic: 'Острый аппендицит', score: 8, total: 10, aura: Aura.neurology),
+    caseOfDay: (id: 'rlq-pain', title: 'Боль в правой подвздошной области', discipline: 'Хирургия', aura: Aura.therapy),
     streakDays: 12,
     streakGoal: 30,
     weekXp: 340,
@@ -34,12 +35,12 @@ abstract final class Demo {
   );
 
   static const disciplines = [
-    DisciplineCardView(title: 'Хирургия', aura: Aura.surgery, topics: 24, mastery: 0.42),
-    DisciplineCardView(title: 'Терапия', aura: Aura.therapy, topics: 31, mastery: 0.18),
-    DisciplineCardView(title: 'Кардиология', aura: Aura.cardiology, topics: 12, mastery: 0.05),
-    DisciplineCardView(title: 'Неврология', aura: Aura.neurology, topics: 14, mastery: 0),
-    DisciplineCardView(title: 'Педиатрия', aura: Aura.pediatrics, topics: 21, mastery: 0.71),
-    DisciplineCardView(title: 'Фармакология', aura: Aura.pharmacology, topics: 18, mastery: 0.33),
+    DisciplineCardView(id: 'surgery', title: 'Хирургия', aura: Aura.surgery, topics: 24, mastery: 0.42),
+    DisciplineCardView(id: 'therapy', title: 'Терапия', aura: Aura.therapy, topics: 31, mastery: 0.18),
+    DisciplineCardView(id: 'cardiology', title: 'Кардиология', aura: Aura.cardiology, topics: 12, mastery: 0.05),
+    DisciplineCardView(id: 'neurology', title: 'Неврология', aura: Aura.neurology, topics: 14, mastery: 0),
+    DisciplineCardView(id: 'pediatrics', title: 'Педиатрия', aura: Aura.pediatrics, topics: 21, mastery: 0.71),
+    DisciplineCardView(id: 'pharmacology', title: 'Фармакология', aura: Aura.pharmacology, topics: 18, mastery: 0.33),
   ];
 
   static const lesson = LessonView(
@@ -138,13 +139,13 @@ abstract final class Demo {
     prompt: 'Что делаете дальше?',
     choices: [
       ('УЗИ брюшной полости и консультация хирурга', true),
-      ('Отпустить домой с анальгетиком', false),
+      ('Отпустить домой под наблюдение', false),
       ('Плановая колоноскопия', false),
     ],
     chosen: 0,
     feedback:
-        'УЗИ подтверждает диагноз и помогает исключить другую патологию. Анальгетик до осмотра хирурга '
-        'может смазать картину.',
+        'Анализ крови и УЗИ подтверждают диагноз и помогают исключить другую патологию. '
+        'Отпускать пациента с такой картиной без осмотра хирурга нельзя.',
   );
 
   static const progress = ProgressView(

@@ -4,8 +4,15 @@ import '../../../core/text/plural.dart';
 import '../../../core/ui/ui.dart';
 
 class DisciplineCardView {
-  const DisciplineCardView({required this.title, required this.aura, required this.topics, required this.mastery});
+  const DisciplineCardView({
+    required this.id,
+    required this.title,
+    required this.aura,
+    required this.topics,
+    required this.mastery,
+  });
 
+  final String id;
   final String title;
   final Aura aura;
   final int topics;
@@ -22,6 +29,8 @@ class CatalogScreen extends StatelessWidget {
     this.onFilter,
     this.onOpen,
     this.onReferences,
+    this.onSearch,
+    this.banner,
   });
 
   final List<DisciplineCardView> disciplines;
@@ -29,6 +38,10 @@ class CatalogScreen extends StatelessWidget {
   final ValueChanged<CatalogFilter>? onFilter;
   final ValueChanged<DisciplineCardView>? onOpen;
   final VoidCallback? onReferences;
+  final ValueChanged<String>? onSearch;
+
+  /// Над списком: например, пометка демо-контента.
+  final Widget? banner;
 
   static const _filterLabels = {
     CatalogFilter.all: 'Все',
@@ -47,9 +60,18 @@ class CatalogScreen extends StatelessWidget {
           padding: const EdgeInsets.all(SrSpace.xl),
           children: [
             Text('Каталог', style: theme.headlineMedium),
+            if (banner != null) ...[
+              const SizedBox(height: SrSpace.m),
+              Align(alignment: Alignment.centerLeft, child: banner),
+            ],
             const SizedBox(height: SrSpace.l),
-            const TextField(
-              decoration: InputDecoration(hintText: 'Поиск по урокам и темам', prefixIcon: Icon(Icons.search_rounded)),
+            TextField(
+              onChanged: onSearch,
+              textInputAction: TextInputAction.search,
+              decoration: const InputDecoration(
+                hintText: 'Поиск по дисциплинам',
+                prefixIcon: Icon(Icons.search_rounded),
+              ),
             ),
             const SizedBox(height: SrSpace.l),
             Wrap(
@@ -61,6 +83,12 @@ class CatalogScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: SrSpace.xl),
+            if (disciplines.isEmpty)
+              const EmptyState(
+                icon: Icons.search_off_rounded,
+                title: 'Ничего не нашлось',
+                message: 'Попробуйте другое название или сбросьте фильтр.',
+              ),
             for (var i = 0; i < disciplines.length; i += 2) ...[
               IntrinsicHeight(
                 child: Row(

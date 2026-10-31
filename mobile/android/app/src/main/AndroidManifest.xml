@@ -1,6 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Бэкап выключен: refresh-токен и кеш не должны попадать в облачные копии. -->
     <application
-        android:label="surgreference"
+        android:label="SurgReference"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

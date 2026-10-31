@@ -33,9 +33,23 @@ class QuizResultView {
 }
 
 class QuizResultScreen extends StatelessWidget {
-  const QuizResultScreen({super.key, required this.result, this.onClose, this.onMistakes, this.onRate});
+  const QuizResultScreen({
+    super.key,
+    required this.result,
+    this.onClose,
+    this.onMistakes,
+    this.onRate,
+    this.onItemTap,
+    this.rated,
+  });
 
   final QuizResultView result;
+
+  /// Раскрыть или свернуть разбор вопроса по индексу.
+  final ValueChanged<int>? onItemTap;
+
+  /// Оценка уже поставлена: true — полезен, false — нет.
+  final bool? rated;
   final VoidCallback? onClose;
   final VoidCallback? onMistakes;
   final ValueChanged<bool>? onRate;
@@ -85,30 +99,32 @@ class QuizResultScreen extends StatelessWidget {
             const SectionHeader('Разбор'),
             const SizedBox(height: SrSpace.s),
             for (final (i, item) in r.items.indexed) ...[
-              _ResultItem(number: i + 1, item: item),
+              _ResultItem(number: i + 1, item: item, onTap: onItemTap == null ? null : () => onItemTap!(i)),
               const SizedBox(height: SrSpace.s),
             ],
             const SizedBox(height: SrSpace.l),
             Tile(
-              child: Row(
-                children: [
-                  Expanded(child: Text('Разбор был полезен?', style: theme.titleMedium)),
-                  IconCircleButton(
-                    icon: Icons.thumb_up_alt_outlined,
-                    semanticLabel: 'Полезен',
-                    onPressed: onRate == null ? null : () => onRate!(true),
-                  ),
-                  const SizedBox(width: SrSpace.s),
-                  IconCircleButton(
-                    icon: Icons.thumb_down_alt_outlined,
-                    semanticLabel: 'Не полезен',
-                    onPressed: onRate == null ? null : () => onRate!(false),
-                  ),
-                ],
-              ),
+              child: rated != null
+                  ? FormMessage('Спасибо, оценка учтена.', isError: false)
+                  : Row(
+                      children: [
+                        Expanded(child: Text('Разбор был полезен?', style: theme.titleMedium)),
+                        IconCircleButton(
+                          icon: Icons.thumb_up_alt_outlined,
+                          semanticLabel: 'Полезен',
+                          onPressed: onRate == null ? null : () => onRate!(true),
+                        ),
+                        const SizedBox(width: SrSpace.s),
+                        IconCircleButton(
+                          icon: Icons.thumb_down_alt_outlined,
+                          semanticLabel: 'Не полезен',
+                          onPressed: onRate == null ? null : () => onRate!(false),
+                        ),
+                      ],
+                    ),
             ),
             const SizedBox(height: SrSpace.xl),
-            PillButton(label: 'Работа над ошибками', onPressed: onMistakes),
+            PillButton(label: 'Пройти ещё раз', onPressed: onMistakes),
             const SizedBox(height: SrSpace.s),
             PillButton(label: 'На главную', variant: PillButtonVariant.secondary, showArrow: false, onPressed: onClose),
             const SizedBox(height: SrSpace.s),
@@ -125,10 +141,11 @@ class QuizResultScreen extends StatelessWidget {
 }
 
 class _ResultItem extends StatelessWidget {
-  const _ResultItem({required this.number, required this.item});
+  const _ResultItem({required this.number, required this.item, this.onTap});
 
   final int number;
   final ResultItemView item;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -137,6 +154,7 @@ class _ResultItem extends StatelessWidget {
     final tone = item.correct ? c.success : c.error;
     final expanded = item.options.isNotEmpty;
     return Tile(
+      onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

@@ -31,6 +31,8 @@ class DotNumber extends StatelessWidget {
     final ink = color ?? DefaultTextStyle.of(context).style.color ?? SrColors.of(context).text;
     final painter = _DotPainter(value, dotSize * scale, ink, showUnlit);
     return Semantics(
+      // Отдельный узел: VoiceOver/TalkBack читает число целиком, не склеивая с соседним текстом.
+      container: true,
       label: semanticLabel,
       excludeSemantics: true,
       // В узкой плитке число ужимается, а не вылезает за край. Не LayoutBuilder: он ломает IntrinsicHeight.

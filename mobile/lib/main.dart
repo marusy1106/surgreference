@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'design_preview/preview_app.dart';
+import 'app/app.dart';
 
-void main() => runApp(const PreviewApp());
+void main() => runApp(const ProviderScope(child: SurgReferenceApp()));
