@@ -202,6 +202,8 @@ CELERY_TIMEZONE = "UTC"
 CELERY_BEAT_SCHEDULE = {
     "accounts-cleanup": {"task": "accounts.cleanup", "schedule": 3600},
     "assessment-expire-attempts": {"task": "assessment.expire_attempts", "schedule": 3600},
+    # Срок пересмотра КР — дата, хватает раза в сутки.
+    "content-check-guideline-revisions": {"task": "content.check_guideline_revisions", "schedule": 24 * 3600},
 }
 
 # --- Почта ----------------------------------------------------------------------

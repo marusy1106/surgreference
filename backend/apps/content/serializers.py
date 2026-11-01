@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from .models import Discipline
+from .references import resolve_blocks
 
 
 class DisciplineSerializer(serializers.ModelSerializer):
@@ -20,10 +21,14 @@ class LessonSerializer(serializers.Serializer):
     title = serializers.CharField(source="published_revision.title")
     version = serializers.IntegerField(source="published_revision.version")
     estimated_minutes = serializers.IntegerField(source="published_revision.estimated_minutes")
-    body = serializers.JSONField(source="published_revision.body")
+    body = serializers.SerializerMethodField()
     published_at = serializers.DateTimeField(source="published_revision.published_at")
     reviewer = serializers.SerializerMethodField()
     sources = serializers.SerializerMethodField()
+
+    def get_body(self, lesson) -> list[dict]:
+        revision = lesson.published_revision
+        return resolve_blocks(revision.body, revision.published_at)
 
     def get_reviewer(self, lesson) -> str:
         reviewer = lesson.published_revision.reviewer
@@ -33,3 +38,24 @@ class LessonSerializer(serializers.Serializer):
         return [
             f"{usage.source.title}{f', {usage.locator}' if usage.locator else ''}" for usage in self.context["sources"]
         ]
+
+
+# --- Справочники ----------------------------------------------------------------------
+
+
+def icd_brief(code) -> dict:
+    return {"code": code.code, "title": code.title, "is_leaf": code.is_leaf}
+
+
+def guideline_brief(guideline) -> dict:
+    version = guideline.current_version
+    return {
+        "id": guideline.pk,
+        "title": guideline.title,
+        "icd_codes": guideline.icd_codes,
+        "age_group": guideline.age_group,
+        "status": guideline.status,
+        "version": version.version_label if version else "",
+        "approved_at": version.approved_at if version else None,
+        "revision_due": version.revision_due if version else None,
+    }

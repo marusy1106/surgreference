@@ -1,9 +1,13 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.db.models import Max
+from django.urls import reverse
+from django.utils.html import format_html
 
+from . import editorial, references
 from .admin_editorial import EditorialAdmin
 from .models import (
     ClinicalGuideline,
+    ContentRecheck,
     ContentReview,
     Discipline,
     GuidelineVersion,
@@ -123,8 +127,66 @@ class ClinicalGuidelineAdmin(admin.ModelAdmin):
     list_display = ("title", "rubricator_id", "age_group", "status")
     list_filter = ("status", "age_group")
     search_fields = ("title", "rubricator_id")
-    raw_id_fields = ("current_version",)
+    # Текущую версию переключает действие «Сделать текущей» в версиях КР: оно же ставит уроки на перепроверку.
+    readonly_fields = ("current_version",)
     inlines = [GuidelineVersionInline]
+
+
+@admin.register(GuidelineVersion)
+class GuidelineVersionAdmin(admin.ModelAdmin):
+    list_display = ("guideline", "version_label", "approved_at", "revision_due", "is_current", "checked_by")
+    list_filter = ("guideline__status",)
+    search_fields = ("guideline__title", "version_label")
+    raw_id_fields = ("guideline",)
+    readonly_fields = ("checked_by", "checked_at", "superseded_by")
+    actions = ["make_current"]
+
+    @admin.display(boolean=True, description="текущая")
+    def is_current(self, obj):
+        return obj.guideline.current_version_id == obj.pk
+
+    @admin.action(description="Сделать текущей версией (уроки со ссылкой — на перепроверку)")
+    def make_current(self, request, queryset):
+        if not editorial.is_chief_editor(request.user):
+            self.message_user(request, "Текущую версию КР выбирает главный редактор", messages.ERROR)
+            return
+        if queryset.values("guideline").distinct().count() != queryset.count():
+            self.message_user(request, "Выберите не больше одной версии каждой КР", messages.ERROR)
+            return
+        for version in queryset.select_related("guideline"):
+            queued = references.set_current_version(version.guideline, version, request.user)
+            self.message_user(request, f"«{version}» — текущая; на перепроверку: {queued}")
+
+
+@admin.register(ContentRecheck)
+class ContentRecheckAdmin(admin.ModelAdmin):
+    """Записи создаёт references (новая версия или срок пересмотра КР). Редактор открывает урок,
+    при необходимости создаёт новую версию и отмечает перепроверку выполненной."""
+
+    list_display = ("content_link", "guideline", "reason", "created_at", "resolved_at", "resolved_by")
+    list_filter = (("resolved_at", admin.EmptyFieldListFilter), "guideline")
+    actions = ["resolve"]
+
+    @admin.display(description="контент")
+    def content_link(self, obj):
+        meta = obj.content_type.model_class()._meta
+        url = reverse(f"admin:{meta.app_label}_{meta.model_name}_change", args=[obj.object_id])
+        return format_html('<a href="{}">{}</a>', url, obj.content_object or obj.object_id)
+
+    @admin.action(description="Отметить проверенным", permissions=["change"])
+    def resolve(self, request, queryset):
+        done = references.resolve_rechecks(queryset, request.user)
+        self.message_user(request, f"Отмечено проверенными: {done}")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        # Список и действие «Отметить проверенным»; сама запись не правится.
+        return obj is None and super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(MediaAsset)

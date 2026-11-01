@@ -35,6 +35,7 @@ ROLES = {
     "content_author": {
         **dict.fromkeys(CONTENT_MODELS, EDIT),
         "content.contentreview": VIEW,
+        "content.contentrecheck": VIEW,
     },
     "medical_reviewer": {
         **dict.fromkeys(CONTENT_MODELS, VIEW),
@@ -42,10 +43,12 @@ ROLES = {
         "assessment.question": ("view", "change"),
         "cases.clinicalcase": ("view", "change"),
         "content.contentreview": EDIT,
+        "content.contentrecheck": VIEW,
     },
     "chief_editor": {
         **dict.fromkeys(CONTENT_MODELS, FULL),
         "content.contentreview": EDIT,
+        "content.contentrecheck": ("view", "change"),
     },
     "support": {
         "accounts.user": ("view", "change"),

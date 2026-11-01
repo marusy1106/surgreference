@@ -12,6 +12,7 @@ from django.utils import timezone
 
 from apps.assessment.models import AnswerOption, Question, QuestionKind, Quiz, QuizQuestion
 from apps.cases.models import CaseChoice, CaseChoiceQuality, CaseStep, CaseStepKind, ClinicalCase
+from apps.content.demo import attach_to_demo_lesson, seed_references
 from apps.content.models import (
     CatalogStatus,
     ContentSource,
@@ -311,6 +312,7 @@ class Command(BaseCommand):
         ContentSource.objects.create(
             content_type=ContentType.objects.get_for_model(LessonRevision), object_id=revision.pk, source=source
         )
+        attach_to_demo_lesson(seed_references()["Острый аппендицит у взрослых"])
 
         quiz = Quiz.objects.create(
             discipline=surgery,

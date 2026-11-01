@@ -293,6 +293,8 @@ LESSON_BLOCK_FIELDS = {
     "callout": ("text",),
     "list": ("items",),
     "table": ("header", "rows"),
+    "icd_ref": ("code",),
+    "guideline_ref": ("guideline_id",),
 }
 
 
@@ -308,6 +310,10 @@ def lesson_block_problems(block) -> list[str]:
         return [f"{kind}: не заполнено {', '.join(missing)}"]
     if kind == "table" and any(len(row) != len(block["header"]) for row in block["rows"]):
         return ["table: в строке не столько ячеек, сколько в заголовке"]
+    if kind == "icd_ref" and not ICD10Code.objects.filter(code=block["code"]).exists():
+        return [f"icd_ref: кода «{block['code']}» нет в справочнике МКБ-10"]
+    if kind == "guideline_ref" and not ClinicalGuideline.objects.filter(pk=block["guideline_id"]).exists():
+        return [f"guideline_ref: клинической рекомендации #{block['guideline_id']} нет в реестре"]
     return []
 
 
@@ -478,3 +484,30 @@ class MediaAsset(TimeStampedModel):
         verbose_name = "медиафайл"
         verbose_name_plural = "медиафайлы"
         constraints = [choices_check("status", MediaAssetStatus)]
+
+
+class ContentRecheck(models.Model):
+    """Очередь перепроверки: опубликованный контент ссылается на КР, которую пересматривают или заменили."""
+
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveBigIntegerField()
+    content_object = GenericForeignKey("content_type", "object_id")
+    guideline = models.ForeignKey(ClinicalGuideline, on_delete=models.CASCADE, related_name="rechecks")
+    reason = models.CharField("причина", max_length=500)
+    created_at = models.DateTimeField(auto_now_add=True)
+    resolved_at = models.DateTimeField("проверено", null=True, blank=True)
+    resolved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT, related_name="+"
+    )
+
+    class Meta:
+        verbose_name = "перепроверка контента"
+        verbose_name_plural = "перепроверка контента (пересмотр КР)"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["content_type", "object_id", "guideline"],
+                condition=Q(resolved_at__isnull=True),
+                name="content_contentrecheck_one_open",
+            )
+        ]
+        indexes = [models.Index(fields=["content_type", "object_id"])]
