@@ -21,6 +21,7 @@ import '../features/profile/presentation/profile_page.dart';
 import '../features/progress/presentation/progress_page.dart';
 import '../features/education/presentation/education_page.dart';
 import '../features/education/presentation/university_search_page.dart';
+import '../features/references/presentation/references_pages.dart';
 import '../features/learning/data/learning_models.dart';
 import '../features/quiz/presentation/quiz_flow_page.dart';
 import '../features/settings/presentation/change_password_page.dart';
@@ -138,6 +139,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       page(Routes.deleteAccount, (_) => const DeleteAccountPage()),
       page(Routes.education, (_) => const EducationPage()),
       page(Routes.universitySearch, (_) => const UniversitySearchPage()),
+      page(Routes.icd10, (_) => const IcdSearchPage()),
+      page('${Routes.icd10}/:code', (s) => IcdCodePage(code: s.pathParameters['code']!)),
+      page(Routes.guidelines, (_) => const GuidelinesPage()),
+      page('${Routes.guidelines}/:id', (s) => GuidelinePage(id: int.parse(s.pathParameters['id']!))),
     ],
   );
 });

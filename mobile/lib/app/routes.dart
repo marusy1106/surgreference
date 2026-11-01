@@ -19,6 +19,8 @@ abstract final class Routes {
   static const deleteAccount = '/settings/delete';
   static const education = '/settings/education';
   static const universitySearch = '/settings/education/university';
+  static const icd10 = '/references/icd10';
+  static const guidelines = '/references/guidelines';
 
   static String discipline(String id) => '/catalog/$id';
   static String lesson(String id) => '/lesson/$id';
@@ -26,6 +28,8 @@ abstract final class Routes {
   static String training(String slug) => '/training/$slug';
   static String mistakes(String slug) => '/mistakes/$slug';
   static String clinicalCase(String id) => '/case/$id';
+  static String icdCode(String code) => '/references/icd10/${Uri.encodeComponent(code)}';
+  static String guideline(int id) => '/references/guidelines/$id';
 
   /// Доступны без входа.
   static const public = {welcome, login, register, forgot};

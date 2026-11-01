@@ -119,5 +119,12 @@ Map<String, Handler> learningRoutes({bool newUser = false}) {
     'GET universities': (_, _) => FakeResponse(200, fixture('universities_search')),
     'GET specialties': (_, _) => FakeResponse(200, fixture('specialties_specialitet')),
     'POST universities/requests': (_, body) => FakeResponse(201, body),
+    'GET icd10': (options, _) => FakeResponse(
+      200,
+      fixture('${options.queryParameters['search'] ?? ''}'.isEmpty ? 'icd10_roots' : 'icd10_search'),
+    ),
+    'GET icd10/K35': (_, _) => FakeResponse(200, fixture('icd10_K35')),
+    'GET guidelines': (_, _) => FakeResponse(200, fixture('guidelines')),
+    'GET guidelines/1': (_, _) => FakeResponse(200, fixture('guideline')),
   };
 }

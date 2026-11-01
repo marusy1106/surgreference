@@ -5,6 +5,7 @@ import 'package:surgreference/core/ui/ui.dart';
 import 'package:surgreference/features/leaderboard/presentation/leaderboard_screen.dart';
 import 'package:surgreference/features/learning/data/api_learning_repository.dart';
 import 'package:surgreference/features/lesson/presentation/lesson_screen.dart';
+import 'package:surgreference/features/references/data/references_models.dart';
 
 import '../fake_backend.dart';
 
@@ -37,8 +38,14 @@ void main() {
       BulletsBlock,
       ImportantBlock,
       TableBlock,
+      HeadingBlock,
+      IcdRefBlock,
+      GuidelineRefBlock,
     ]);
-    expect((lesson.blocks.last as TableBlock).rows, hasLength(8));
+    expect(lesson.blocks.whereType<TableBlock>().single.rows, hasLength(8));
+    final ref = lesson.blocks.whereType<GuidelineRefBlock>().single;
+    expect((ref.id, ref.version, ref.status, ref.revised), (1, 'демо-2', GuidelineStatus.active, false));
+    expect(lesson.blocks.whereType<IcdRefBlock>().single.title, 'Острый аппендицит');
     expect(lesson.reviewer, 'демо-рецензент');
     expect(lesson.updatedAt, matches(RegExp(r'^\d{1,2} [а-я]+ \d{4}$')));
   });

@@ -69,6 +69,23 @@
     "Баллы"
    ],
    "caption": "Шкала Альварадо"
+  },
+  {
+   "text": "Справочники",
+   "type": "heading"
+  },
+  {
+   "code": "K35",
+   "type": "icd_ref",
+   "title": "Острый аппендицит"
+  },
+  {
+   "type": "guideline_ref",
+   "guideline_id": 1,
+   "title": "Острый аппендицит у взрослых",
+   "status": "active",
+   "version": "демо-2",
+   "revised": false
   }
  ],
  "published_at": "2026-10-31T14:19:48.699961Z",

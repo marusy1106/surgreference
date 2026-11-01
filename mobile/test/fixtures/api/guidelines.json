@@ -1,0 +1,41 @@
+[
+ {
+  "id": 1,
+  "title": "Острый аппендицит у взрослых",
+  "icd_codes": [
+   "K35",
+   "K36",
+   "K37"
+  ],
+  "age_group": "adults",
+  "status": "active",
+  "version": "демо-2",
+  "approved_at": "2024-01-01",
+  "revision_due": "2027-01-01"
+ },
+ {
+  "id": 3,
+  "title": "Острый панкреатит",
+  "icd_codes": [
+   "K85"
+  ],
+  "age_group": "adults",
+  "status": "active",
+  "version": "демо-1",
+  "approved_at": "2024-03-01",
+  "revision_due": "2027-03-01"
+ },
+ {
+  "id": 2,
+  "title": "Острый холецистит",
+  "icd_codes": [
+   "K80",
+   "K81.0"
+  ],
+  "age_group": "adults",
+  "status": "under_revision",
+  "version": "демо-1",
+  "approved_at": "2021-06-01",
+  "revision_due": "2024-06-01"
+ }
+]

@@ -30,6 +30,7 @@ cd backend && python3.13 -m venv .venv && .venv/bin/pip install -r requirements/
 ```bash
 .venv/bin/python manage.py seed_demo_content   # дисциплины, тема «Острый аппендицит» (урок, тест), кейс
 .venv/bin/python manage.py seed_demo_editorial # автор, рецензент хирургии, главный редактор и черновик урока
+.venv/bin/python manage.py seed_demo_references # фрагмент МКБ-10, три КР; ссылки на них в демо-уроке (seed_demo_content делает это сам)
 ```
 
 Только при `DEBUG=True` (для стенда беты — `--force`). Авторы контента — неактивные служебные пользователи.

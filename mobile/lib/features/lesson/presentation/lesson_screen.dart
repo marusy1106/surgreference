@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/ui/ui.dart';
+import '../../references/data/references_models.dart';
+import '../../references/presentation/reference_parts.dart';
 
-/// Блоки структурированного урока (docs/05-learning.md): заголовок, абзац, список, «Важно», таблица.
+/// Блоки структурированного урока (docs/05-learning.md): заголовок, абзац, список, «Важно», таблица
+/// и ссылки на справочники (код МКБ-10, клиническая рекомендация).
 sealed class LessonBlock {
   const LessonBlock();
 }
@@ -34,6 +37,28 @@ class TableBlock extends LessonBlock {
   final String? caption;
 }
 
+class IcdRefBlock extends LessonBlock {
+  const IcdRefBlock({required this.code, required this.title});
+  final String code;
+  final String title;
+}
+
+/// [revised] — КР пересмотрена или заменена после публикации урока: читатель сверяется с актуальной версией.
+class GuidelineRefBlock extends LessonBlock {
+  const GuidelineRefBlock({
+    required this.id,
+    required this.title,
+    required this.version,
+    required this.status,
+    required this.revised,
+  });
+  final int id;
+  final String title;
+  final String version;
+  final GuidelineStatus status;
+  final bool revised;
+}
+
 class LessonView {
   const LessonView({
     required this.discipline,
@@ -57,10 +82,20 @@ class LessonView {
 }
 
 class LessonScreen extends StatelessWidget {
-  const LessonScreen({super.key, required this.lesson, this.onBack, this.onComplete, this.onReport});
+  const LessonScreen({
+    super.key,
+    required this.lesson,
+    this.onBack,
+    this.onComplete,
+    this.onReport,
+    this.onOpenIcd,
+    this.onOpenGuideline,
+  });
 
   final LessonView lesson;
   final VoidCallback? onBack;
+  final ValueChanged<String>? onOpenIcd;
+  final ValueChanged<int>? onOpenGuideline;
   final VoidCallback? onComplete;
   final VoidCallback? onReport;
 
@@ -172,6 +207,29 @@ class LessonScreen extends StatelessWidget {
             Text(text, style: theme.bodyMedium),
           ],
         ),
+      ),
+      IcdRefBlock(:final code, :final title) => ReferenceRow(
+        leading: IcdCodeLabel(code),
+        title: title.isEmpty ? 'МКБ-10' : title,
+        subtitle: 'МКБ-10',
+        onTap: onOpenIcd == null ? null : () => onOpenIcd!(code),
+      ),
+      GuidelineRefBlock(:final id, :final title, :final version, :final status, :final revised) => ReferenceRow(
+        leading: Container(
+          width: kMinTapTarget,
+          height: kMinTapTarget,
+          decoration: BoxDecoration(color: c.surface2, shape: BoxShape.circle),
+          child: Icon(Icons.description_outlined, color: c.text),
+        ),
+        title: title,
+        subtitle: ['Клинические рекомендации', if (version.isNotEmpty) 'версия $version'].join(' · '),
+        trailing: revised
+            ? Text(
+                'КР обновлена после публикации урока — сверяйтесь с актуальной версией',
+                style: theme.bodySmall!.copyWith(color: c.warning),
+              )
+            : GuidelineStatusBadge(status),
+        onTap: onOpenGuideline == null ? null : () => onOpenGuideline!(id),
       ),
       TableBlock(:final header, :final rows, :final caption) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -254,6 +254,48 @@ void main() {
     expect(find.text('Урок пройден'), findsOneWidget);
   });
 
+  testWidgets('references: ICD-10 search → code → guideline → lesson and back via the lesson link', (tester) async {
+    await store.writeRefresh('r1');
+    await pumpApp(tester);
+    await tapText(tester, 'Каталог');
+    await tapText(tester, 'МКБ-10');
+    expect(find.text('Класс XI. Болезни органов пищеварения'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), 'к35');
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pumpAndSettle();
+    expect(find.text('Острый аппендицит с генерализованным перитонитом'), findsOneWidget);
+
+    await tapText(tester, 'Острый аппендицит');
+    expect(backend.log, contains('GET icd10/K35 Bearer a2'));
+    expect(find.text('Уточнения'), findsOneWidget);
+
+    await tapText(tester, 'Острый аппендицит у взрослых');
+    expect(find.text('Ключевые положения'), findsOneWidget);
+    expect(find.text('Действует'), findsOneWidget);
+
+    await tapText(tester, 'Острый аппендицит: клиническая картина и диагностика');
+    expect(find.text('Шкала Альварадо'), findsOneWidget);
+    await tapText(tester, 'Острый аппендицит у взрослых');
+    expect(find.text('Ключевые положения'), findsOneWidget);
+  });
+
+  testWidgets('guidelines registry: status filter and revision notice', (tester) async {
+    await store.writeRefresh('r1');
+    await pumpApp(tester);
+    await tapText(tester, 'Каталог');
+    await tapText(tester, 'Клинические рекомендации');
+    expect(find.text('На пересмотре'), findsWidgets);
+
+    backend.routes['GET guidelines'] = (options, _) => FakeResponse(200, [
+      for (final g in fixture('guidelines') as List)
+        if ((g as Map)['status'] == options.queryParameters['status']) g,
+    ]);
+    await tapText(tester, 'На пересмотре');
+    expect(find.text('Острый холецистит'), findsOneWidget);
+    expect(find.text('Острый аппендицит у взрослых'), findsNothing);
+  });
+
   testWidgets('leaderboard opt-in is sent to the server', (tester) async {
     backend.routes['GET leaderboards/users'] = (_, _) => const FakeResponse(200, {
       'rows': [],

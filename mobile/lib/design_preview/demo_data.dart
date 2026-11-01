@@ -11,6 +11,7 @@ import '../features/profile/presentation/profile_screen.dart';
 import '../features/progress/presentation/progress_screen.dart';
 import '../features/quiz/presentation/quiz_result_screen.dart';
 import '../features/quiz/presentation/quiz_screen.dart';
+import '../features/references/data/references_models.dart';
 
 abstract final class Demo {
   static const nickname = 'scalpel_anna';
@@ -84,7 +85,88 @@ abstract final class Demo {
           ['Сдвиг лейкоцитарной формулы влево', '1'],
         ],
       ),
+      HeadingBlock('Справочники'),
+      IcdRefBlock(code: 'K35', title: 'Острый аппендицит'),
+      GuidelineRefBlock(
+        id: 1,
+        title: 'Острый аппендицит у взрослых',
+        version: 'демо-2',
+        status: GuidelineStatus.active,
+        revised: false,
+      ),
     ],
+  );
+
+  static const icdSearch = [
+    IcdCode(code: 'K35', title: 'Острый аппендицит', isLeaf: false),
+    IcdCode(code: 'K35.2', title: 'Острый аппендицит с генерализованным перитонитом'),
+    IcdCode(code: 'K35.3', title: 'Острый аппендицит с локализованным перитонитом'),
+    IcdCode(code: 'K35.8', title: 'Острый аппендицит, другой и неуточненный'),
+  ];
+
+  static final appendicitisGuideline = GuidelineBrief(
+    id: 1,
+    title: 'Острый аппендицит у взрослых',
+    status: GuidelineStatus.active,
+    icdCodes: const ['K35', 'K36', 'K37'],
+    version: 'демо-2',
+    approvedAt: DateTime(2024),
+    revisionDue: DateTime(2027),
+  );
+
+  static final guidelines = [
+    appendicitisGuideline,
+    GuidelineBrief(
+      id: 3,
+      title: 'Острый панкреатит',
+      status: GuidelineStatus.active,
+      icdCodes: const ['K85'],
+      version: 'демо-1',
+      approvedAt: DateTime(2024, 3),
+      revisionDue: DateTime(2027, 3),
+    ),
+    GuidelineBrief(
+      id: 2,
+      title: 'Острый холецистит',
+      status: GuidelineStatus.underRevision,
+      icdCodes: const ['K80', 'K81.0'],
+      version: 'демо-1',
+      approvedAt: DateTime(2021, 6),
+      revisionDue: DateTime(2024, 6),
+    ),
+  ];
+
+  static final icdCode = IcdCodeDetail(
+    code: const IcdCode(code: 'K35', title: 'Острый аппендицит', isLeaf: false),
+    ancestors: const [
+      IcdCode(code: 'K00-K93', title: 'Класс XI. Болезни органов пищеварения', isLeaf: false),
+      IcdCode(code: 'K35-K38', title: 'Болезни аппендикса [червеобразного отростка]', isLeaf: false),
+    ],
+    children: icdSearch.skip(1).toList(),
+    guidelines: [appendicitisGuideline],
+  );
+
+  static final guideline = GuidelineDetail(
+    brief: appendicitisGuideline,
+    developer: 'Российское общество хирургов',
+    summary: const [
+      'Демо-данные для разработки: номер версии и даты условные.',
+      'Диагноз устанавливается по клинической картине, лабораторным данным и результатам визуализации '
+          '(УЗИ, КТ по показаниям).',
+      'Для оценки вероятности аппендицита используются шкалы (Альварадо, AIR).',
+      'Основной метод лечения — аппендэктомия, предпочтительно лапароскопическая.',
+    ],
+    sourceUrl: 'https://cr.minzdrav.gov.ru/',
+    icd: const [
+      IcdCode(code: 'K35', title: 'Острый аппендицит', isLeaf: false),
+      IcdCode(code: 'K36', title: 'Другие формы аппендицита'),
+      IcdCode(code: 'K37', title: 'Аппендицит неуточненный'),
+    ],
+    versions: [
+      GuidelineVersionRow(version: 'демо-2', approvedAt: DateTime(2024), current: true),
+      GuidelineVersionRow(version: 'демо-1', approvedAt: DateTime(2021), current: false),
+    ],
+    lessons: const [CitingLesson(id: 1, title: 'Острый аппендицит: клиническая картина и диагностика')],
   );
 
   static const quizQuestion = QuizQuestionView(

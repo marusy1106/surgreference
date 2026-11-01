@@ -28,7 +28,8 @@ class CatalogScreen extends StatelessWidget {
     this.filter = CatalogFilter.all,
     this.onFilter,
     this.onOpen,
-    this.onReferences,
+    this.onIcd10,
+    this.onGuidelines,
     this.onSearch,
     this.banner,
   });
@@ -37,7 +38,8 @@ class CatalogScreen extends StatelessWidget {
   final CatalogFilter filter;
   final ValueChanged<CatalogFilter>? onFilter;
   final ValueChanged<DisciplineCardView>? onOpen;
-  final VoidCallback? onReferences;
+  final VoidCallback? onIcd10;
+  final VoidCallback? onGuidelines;
   final ValueChanged<String>? onSearch;
 
   /// Над списком: например, пометка демо-контента.
@@ -109,12 +111,12 @@ class CatalogScreen extends StatelessWidget {
             const SizedBox(height: SrSpace.m),
             SectionHeader('Справочники'),
             const SizedBox(height: SrSpace.s),
-            for (final (icon, title, subtitle) in [
-              (Icons.tag_rounded, 'МКБ-10', 'Поиск по коду и названию'),
-              (Icons.description_outlined, 'Клинические рекомендации', 'Версии и статус документа'),
+            for (final (icon, title, subtitle, onTap) in [
+              (Icons.tag_rounded, 'МКБ-10', 'Поиск по коду и названию', onIcd10),
+              (Icons.description_outlined, 'Клинические рекомендации', 'Версии и статус документа', onGuidelines),
             ]) ...[
               Tile(
-                onTap: onReferences,
+                onTap: onTap,
                 child: Row(
                   children: [
                     Container(

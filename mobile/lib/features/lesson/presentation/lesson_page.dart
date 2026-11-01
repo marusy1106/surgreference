@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/async_view.dart';
 import '../../../app/providers.dart';
+import '../../../app/routes.dart';
 import '../../learning/learning_providers.dart';
 import 'lesson_screen.dart';
 
@@ -32,6 +33,8 @@ class LessonPage extends ConsumerWidget {
             context.pop();
           }
         },
+        onOpenIcd: (code) => context.push(Routes.icdCode(code)),
+        onOpenGuideline: (guidelineId) => context.push(Routes.guideline(guidelineId)),
         onReport: () => message('Форма «Сообщить об ошибке» появится вместе с обратной связью на сервере.'),
       ),
     );

@@ -41,9 +41,8 @@ class _CatalogPageState extends ConsumerState<CatalogPage> {
         onFilter: (f) => setState(() => _filter = f),
         onSearch: (q) => setState(() => _query = q),
         onOpen: (d) => context.push(Routes.discipline(d.id)),
-        onReferences: () => ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(const SnackBar(content: Text('Справочники МКБ-10 и КР появятся в следующем обновлении.'))),
+        onIcd10: () => context.push(Routes.icd10),
+        onGuidelines: () => context.push(Routes.guidelines),
       ),
     );
   }

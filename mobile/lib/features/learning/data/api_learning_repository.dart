@@ -4,6 +4,7 @@ import '../../../core/api/api_client.dart';
 import '../../../core/api/api_error.dart';
 import '../../leaderboard/presentation/leaderboard_screen.dart';
 import '../../lesson/presentation/lesson_screen.dart';
+import '../../references/data/references_models.dart';
 import 'learning_models.dart';
 import 'learning_repository.dart';
 
@@ -165,7 +166,7 @@ class ApiLearningRepository implements LearningRepository {
   }
 }
 
-/// Блоки урока из API (heading, paragraph, list, callout, table) → блоки экрана. Неизвестный тип с текстом
+/// Блоки урока из API (heading, paragraph, list, callout, table, icd_ref, guideline_ref) → блоки экрана. Неизвестный тип с текстом
 /// показывается абзацем: старое приложение не теряет содержимое новых блоков.
 LessonView lessonFromJson(Map<String, dynamic> j) {
   final blocks = <LessonBlock>[];
@@ -189,6 +190,21 @@ LessonView lessonFromJson(Map<String, dynamic> j) {
             ],
           ),
         );
+      case 'icd_ref':
+        blocks.add(IcdRefBlock(code: b['code'] as String, title: b['title'] as String? ?? ''));
+      // КР удалили из реестра — сервер не дополнил блок, ссылку не показываем.
+      case 'guideline_ref' when b['title'] != null:
+        blocks.add(
+          GuidelineRefBlock(
+            id: b['guideline_id'] as int,
+            title: b['title'] as String,
+            version: b['version'] as String? ?? '',
+            status: GuidelineStatus.parse(b['status'] as String?),
+            revised: b['revised'] as bool? ?? false,
+          ),
+        );
+      case 'guideline_ref':
+        break;
       default:
         if (text.isNotEmpty) blocks.add(ParagraphBlock(text));
     }
