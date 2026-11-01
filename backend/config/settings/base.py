@@ -125,6 +125,8 @@ LOGIN_LOCKOUT_FAILURES = 10
 LOGIN_LOCKOUT_SECONDS = 15 * 60
 
 OTP_TOTP_ISSUER = "SurgReference"
+# Второй фактор для входа в админку. Выключать можно только локально (dev), в prod — запрещено.
+ADMIN_REQUIRE_OTP = True
 
 # --- Локализация --------------------------------------------------------------
 LANGUAGE_CODE = "ru"

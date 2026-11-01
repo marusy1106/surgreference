@@ -1,5 +1,5 @@
 from .base import *  # noqa: F403
-from .base import JWT_ACTIVE_KID, JWT_SIGNING_KEYS, env
+from .base import ADMIN_REQUIRE_OTP, JWT_ACTIVE_KID, JWT_SIGNING_KEYS, env
 
 DEBUG = False
 
@@ -19,3 +19,6 @@ if JWT_ACTIVE_KID not in JWT_SIGNING_KEYS or min(map(len, JWT_SIGNING_KEYS.value
 
 if not env("S3_BUCKET", default=""):
     raise RuntimeError("В prod файлы хранятся только в S3: задайте S3_BUCKET и ключи доступа")
+
+if not ADMIN_REQUIRE_OTP:
+    raise RuntimeError("В prod вход в админку только со вторым фактором (ADMIN_REQUIRE_OTP)")

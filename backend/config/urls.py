@@ -8,8 +8,10 @@ from apps.accounts.admin_forms import AuditedOTPAdminAuthenticationForm
 from config import views as system_views
 
 # Админка открывается только после второго фактора (TOTP или резервный код), docs/04, 4.5.
-admin.site.__class__ = OTPAdminSite
-admin.site.login_form = AuditedOTPAdminAuthenticationForm
+# Локально (dev) его можно отключить — вход по паролю.
+if settings.ADMIN_REQUIRE_OTP:
+    admin.site.__class__ = OTPAdminSite
+    admin.site.login_form = AuditedOTPAdminAuthenticationForm
 admin.site.site_header = "SurgReference — администрирование"
 admin.site.site_title = "SurgReference"
 

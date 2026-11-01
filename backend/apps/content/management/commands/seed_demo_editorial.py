@@ -46,7 +46,7 @@ class Command(BaseCommand):
             surgery = Discipline.objects.get(slug="surgery")
             surgery.reviewers.add(users["medical_reviewer"])
             self._draft(surgery, users["content_author"])
-        self.stdout.write("Сотрудники (пароль общий, второй фактор — TOTP, ключи в базе):")
+        self.stdout.write("Сотрудники (пароль общий; второй фактор нужен, только если ADMIN_REQUIRE_OTP включён):")
         for email, _, role in STAFF:
             self.stdout.write(f"  {role:18} {email}")
         self.stdout.write(f"Пароль: {password}")
